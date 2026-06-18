@@ -10,6 +10,8 @@ jobs:
   build-images:
     name: Build Docker Images
     runs-on: ubuntu-latest
+    env:
+      ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
     outputs:
       image-tag: ${{ steps.tag.outputs.tag }}
     steps:
@@ -46,25 +48,25 @@ jobs:
 
       # Conditional push to registry (placeholder until CHG-003 configures ECR)
       - name: Login to ECR
-        if: ${{ secrets.ECR_REGISTRY != '' }}
+        if: ${{ env.ECR_REGISTRY != '' }}
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Push API image to registry
-        if: ${{ secrets.ECR_REGISTRY != '' }}
+        if: ${{ env.ECR_REGISTRY != '' }}
         run: |
           docker tag linguoup-api:${{ steps.tag.outputs.tag }} \
-            ${{ secrets.ECR_REGISTRY }}/linguoup-api:${{ steps.tag.outputs.tag }}
-          docker push ${{ secrets.ECR_REGISTRY }}/linguoup-api:${{ steps.tag.outputs.tag }}
+            ${{ env.ECR_REGISTRY }}/linguoup-api:${{ steps.tag.outputs.tag }}
+          docker push ${{ env.ECR_REGISTRY }}/linguoup-api:${{ steps.tag.outputs.tag }}
 
       - name: Push Web image to registry
-        if: ${{ secrets.ECR_REGISTRY != '' }}
+        if: ${{ env.ECR_REGISTRY != '' }}
         run: |
           docker tag linguoup-web:${{ steps.tag.outputs.tag }} \
-            ${{ secrets.ECR_REGISTRY }}/linguoup-web:${{ steps.tag.outputs.tag }}
-          docker push ${{ secrets.ECR_REGISTRY }}/linguoup-web:${{ steps.tag.outputs.tag }}
+            ${{ env.ECR_REGISTRY }}/linguoup-web:${{ steps.tag.outputs.tag }}
+          docker push ${{ env.ECR_REGISTRY }}/linguoup-web:${{ steps.tag.outputs.tag }}
 
       - name: Log skipped registry push
-        if: ${{ secrets.ECR_REGISTRY == '' }}
+        if: ${{ env.ECR_REGISTRY == '' }}
         run: echo "⚠️ ECR_REGISTRY secret not configured — skipping registry push (pending CHG-003)"
 
   # ─── DEPLOY STAGING ────────────────────────────────────────────────────────
@@ -87,6 +89,8 @@ jobs:
   build-mobile-eas:
     name: Build Mobile (EAS)
     runs-on: ubuntu-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -103,16 +107,14 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install EAS CLI
-        if: ${{ secrets.EXPO_TOKEN != '' }}
+        if: ${{ env.EXPO_TOKEN != '' }}
         run: pnpm add -g eas-cli
 
       - name: Build mobile with EAS
-        if: ${{ secrets.EXPO_TOKEN != '' }}
+        if: ${{ env.EXPO_TOKEN != '' }}
         working-directory: apps/mobile
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: eas build --platform all --non-interactive
 
       - name: Log skipped EAS build
-        if: ${{ secrets.EXPO_TOKEN == '' }}
+        if: ${{ env.EXPO_TOKEN == '' }}
         run: echo "⚠️ EXPO_TOKEN secret not configured — skipping EAS build"
