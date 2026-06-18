@@ -1,0 +1,14 @@
+{
+  "name": "@linguoup/ui",
+  "version": "0.0.1",
+  "private": true,
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@linguoup/config": "workspace:*"
+  }
+}

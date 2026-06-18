@@ -1,0 +1,70 @@
+name: CD - Production
+
+on:
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to promote to production (e.g., develop-abc1234)"
+        required: true
+        type: string
+
+  # Automatic trigger on version tags
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  # ─── PROMOTE IMAGES ────────────────────────────────────────────────────────
+  promote-images:
+    name: Promote Images to Production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve image tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ github.event.inputs.image_tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Placeholder promotion step — real ECR/registry configured in CHG-003
+      - name: Promote API image from staging to production (placeholder)
+        run: |
+          echo "🔄 Promoting linguoup-api:${{ steps.tag.outputs.tag }} → production"
+          echo "⚠️  Real image promotion will be configured in CHG-003 (AWS/ECR)"
+
+      - name: Promote Web image from staging to production (placeholder)
+        run: |
+          echo "🔄 Promoting linguoup-web:${{ steps.tag.outputs.tag }} → production"
+          echo "⚠️  Real image promotion will be configured in CHG-003 (AWS/ECR)"
+
+  # ─── DEPLOY PRODUCTION ─────────────────────────────────────────────────────
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: promote-images
+    # Required reviewers configured via GitHub Environments UI
+    # Go to: Settings → Environments → production → Required reviewers
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve image tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ github.event.inputs.image_tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Placeholder deploy step — real deploy configured in CHG-003
+      - name: Deploy to production (placeholder)
+        run: |
+          echo "🚀 Deploying linguoup-api:${{ steps.tag.outputs.tag }} to production"
+          echo "🚀 Deploying linguoup-web:${{ steps.tag.outputs.tag }} to production"
+          echo "⚠️  Real deploy target will be configured in CHG-003 (AWS/ECS)"

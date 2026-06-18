@@ -1,0 +1,63 @@
+schema: spec-driven
+
+context: |
+  Produto: LinguoUp — plataforma mobile-first de aprendizado de idiomas (microaprendizagem).
+  Arquitetura: Modular Monolith (V1-MVP) com evolução planejada para Microservices (V2+).
+  Monorepo: pnpm workspaces. Fluxo de dependência: apps/* → packages/*. Sem dependências circulares.
+
+  Stack:
+    Mobile:    React Native + NativeWind + Zustand (UI) + TanStack Query (servidor) + useState (formulários)
+    Web Admin: Next.js App Router + Tailwind CSS + TanStack Query + Zustand
+    Backend:   NestJS + TypeScript + Node.js LTS + Prisma ORM
+    Banco:     PostgreSQL 15+ (fonte de verdade transacional) + Redis 7+ (sessões/cache)
+    Storage:   AWS S3 + CloudFront (CDN)
+    Auth:      Auth0 (MVP) → AWS Cognito (V3); OAuth 2.1 + OIDC + JWT RS256 + Refresh Token Rotativo
+    Obs.:      OpenTelemetry + Prometheus + Grafana + Loki + Sentry
+    CI/CD:     GitHub Actions — Build → Testes → SAST (SonarQube) → Staging → Aprovação → Prod
+    IaC:       Terraform | Orquestração: Kubernetes EKS | Deploy: Blue-Green + rollback automático
+
+  Arquitetura backend (Clean Architecture — obrigatório):
+    Controller → Use Case (Application) → Domain Service → Repository → Prisma
+    - Regras de negócio: SOMENTE nas camadas Domain/Application
+    - Banco: acessado APENAS via Repositories (Prisma). SQL hardcoded é proibido.
+    - Toda operação valida: autenticação (JWT) + autorização (RBAC) + tenant_id + entrada de dados
+    - RBAC: USER | ADMIN | SUPER_ADMIN
+
+  APIs:
+    - Base URL: /api/v1. Versionamento URI. Recursos no plural.
+    - OpenAPI obrigatório (Swagger gerado via NestJS).
+    - Payload sucesso: { data, metadata } | Payload erro: { error: { code, message } }
+    - Não alterar contratos existentes sem criar nova versão de API.
+
+  Observabilidade (obrigatória em toda funcionalidade nova):
+    - Logs estruturados: timestamp, level, service, trace_id, span_id, user_id, tenant_id
+    - Métricas: latência p50/p95/p99 por endpoint
+    - Tracing: W3C Trace Context via OpenTelemetry
+    - Erros: Sentry com contexto de usuário (NUNCA logar tokens, senhas ou dados sensíveis)
+
+  Critério de conclusão (nenhuma tarefa está pronta sem isso):
+    pnpm lint && pnpm typecheck && pnpm test && pnpm build
+
+rules:
+  proposal:
+    - Identificar em qual versão do roadmap a funcionalidade se enquadra: V1-MVP, V2-Growth, V3-Scale ou V4-Enterprise
+    - Verificar impacto em tenant_id e isolamento de dados antes de propor qualquer mudança de schema
+    - Verificar se exige nova versão de API (/api/v2) ou pode usar contratos existentes sem breaking change
+    - Incluir seção "Non-goals" explicitando o que está fora do escopo da mudança
+    - Não propor novas dependências sem justificar e verificar se já existe solução equivalente no projeto
+  tasks:
+    - Decompor em tarefas de no máximo 2 horas de desenvolvimento cada
+    - "Toda task deve declarar seu critério de conclusão: pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+    - "Incluir tasks de teste para: unitários (80% domínio/use cases), integração (fluxos críticos: auth, progresso, gamificação), E2E (jornadas principais)"
+    - Bugs corrigidos e novas regras de negócio exigem task de teste antes do merge
+    - Tasks de migration Prisma devem ter task separada de revisão e rollback documentado
+  specs:
+    - "Toda spec deve especificar: validação de tenant_id, nível de RBAC exigido e endpoints OpenAPI impactados"
+    - Incluir contratos de request/response completos com exemplos JSON
+    - Especificar impacto em cache (TTLs do Redis) e transações Prisma quando a operação envolve múltiplas entidades
+    - Fluxos críticos (auth, progresso, gamificação) exigem spec de integração e E2E
+  design:
+    - Mobile-first. Máximo 3 interações do usuário para iniciar qualquer fluxo principal
+    - Feedback visual imediato após toda ação do usuário (skeleton loading, toasts, badges)
+    - Seguir Design System de spec_ui.md: cards, barras de progresso, badges, bottom sheets, skeleton loading
+    - "Suporte: iOS (últimas 2 versões principais) + Android API 26+ | Web Admin: Chrome, Firefox, Safari, Edge (últimas 2 versões)"
