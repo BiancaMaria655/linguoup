@@ -73,7 +73,7 @@ jobs:
           if [ "${{ needs.changes.outputs.api }}" == "true" ]; then FLAGS="$FLAGS --filter=api"; fi
           if [ "${{ needs.changes.outputs.web }}" == "true" ]; then FLAGS="$FLAGS --filter=web"; fi
           if [ "${{ needs.changes.outputs.mobile }}" == "true" ]; then FLAGS="$FLAGS --filter=mobile"; fi
-          pnpm lint $FLAGS
+          pnpm $FLAGS lint
 
   # ─── TYPECHECK ─────────────────────────────────────────────────────────────
   typecheck:
@@ -102,7 +102,7 @@ jobs:
           if [ "${{ needs.changes.outputs.api }}" == "true" ]; then FLAGS="$FLAGS --filter=api"; fi
           if [ "${{ needs.changes.outputs.web }}" == "true" ]; then FLAGS="$FLAGS --filter=web"; fi
           if [ "${{ needs.changes.outputs.mobile }}" == "true" ]; then FLAGS="$FLAGS --filter=mobile"; fi
-          pnpm typecheck $FLAGS
+          pnpm $FLAGS typecheck
 
   # ─── TEST ──────────────────────────────────────────────────────────────────
   test:
@@ -131,7 +131,7 @@ jobs:
           if [ "${{ needs.changes.outputs.api }}" == "true" ]; then FLAGS="$FLAGS --filter=api"; fi
           if [ "${{ needs.changes.outputs.web }}" == "true" ]; then FLAGS="$FLAGS --filter=web"; fi
           if [ "${{ needs.changes.outputs.mobile }}" == "true" ]; then FLAGS="$FLAGS --filter=mobile"; fi
-          pnpm test $FLAGS
+          pnpm $FLAGS test
 
   # ─── BUILD ─────────────────────────────────────────────────────────────────
   build:
@@ -159,4 +159,4 @@ jobs:
           FLAGS=""
           if [ "${{ needs.changes.outputs.api }}" == "true" ]; then FLAGS="$FLAGS --filter=api"; fi
           if [ "${{ needs.changes.outputs.web }}" == "true" ]; then FLAGS="$FLAGS --filter=web"; fi
-          pnpm build $FLAGS
+          pnpm $FLAGS build

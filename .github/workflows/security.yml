@@ -36,7 +36,7 @@ jobs:
 
       - name: Run tests with coverage
         if: ${{ env.SONAR_TOKEN != '' }}
-        run: pnpm test --filter=api -- --coverage --coverageReporters=lcov
+        run: pnpm --filter=api test --coverage --coverageReporters=lcov
 
       - name: SonarCloud Scan
         if: ${{ env.SONAR_TOKEN != '' }}
