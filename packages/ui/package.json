@@ -5,10 +5,11 @@
   "main": "index.ts",
   "types": "index.ts",
   "scripts": {
-    "lint": "eslint . --ext .ts,.tsx",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@linguoup/config": "workspace:*"
+    "@linguoup/config": "workspace:*",
+    "eslint": "^9.18.0"
   }
 }
