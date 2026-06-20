@@ -18,5 +18,14 @@
     "db:seed": "pnpm --filter=@linguoup/database seed",
     "db:studio": "pnpm --filter=@linguoup/database studio"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "sharp",
+      "unrs-resolver"
+    ]
+  }
 }
