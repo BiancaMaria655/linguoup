@@ -2,6 +2,7 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "@linguoup/config/tsconfig",
   "compilerOptions": {
+    "module": "ESNext",
     "outDir": "dist",
     "rootDir": "."
   },
