@@ -25,7 +25,8 @@
       "@prisma/engines",
       "prisma",
       "sharp",
-      "unrs-resolver"
+      "unrs-resolver",
+      "argon2"
     ]
   }
 }
