@@ -39,6 +39,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma client
+        run: pnpm --filter=@linguoup/database build
+
       - name: Run tests with coverage
         if: ${{ env.SONAR_TOKEN != '' }}
         run: pnpm --filter=api test --coverage --coverageReporters=lcov
