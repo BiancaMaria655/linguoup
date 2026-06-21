@@ -2,10 +2,10 @@
   "name": "@linguoup/database",
   "version": "0.0.1",
   "private": true,
-  "main": "index.ts",
-  "types": "index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "build": "prisma generate",
+    "build": "prisma generate && tsc",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "migrate": "prisma migrate deploy",
