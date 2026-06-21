@@ -3,11 +3,6 @@ name: CD - Production
 on:
   # Manual trigger
   workflow_dispatch:
-    inputs:
-      image_tag:
-        description: "Image tag to promote to production (e.g., develop-abc1234)"
-        required: true
-        type: string
 
   # Automatic trigger on version tags
   push:
@@ -15,56 +10,62 @@ on:
       - "v*"
 
 jobs:
-  # ─── PROMOTE IMAGES ────────────────────────────────────────────────────────
-  promote-images:
-    name: Promote Images to Production
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Resolve image tag
-        id: tag
-        run: |
-          if [ "${{ github.event_name }}" == "push" ]; then
-            echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "tag=${{ github.event.inputs.image_tag }}" >> "$GITHUB_OUTPUT"
-          fi
-
-      # Placeholder promotion step — real ECR/registry configured in CHG-003
-      - name: Promote API image from staging to production (placeholder)
-        run: |
-          echo "🔄 Promoting linguoup-api:${{ steps.tag.outputs.tag }} → production"
-          echo "⚠️  Real image promotion will be configured in CHG-003 (AWS/ECR)"
-
-      - name: Promote Web image from staging to production (placeholder)
-        run: |
-          echo "🔄 Promoting linguoup-web:${{ steps.tag.outputs.tag }} → production"
-          echo "⚠️  Real image promotion will be configured in CHG-003 (AWS/ECR)"
-
   # ─── DEPLOY PRODUCTION ─────────────────────────────────────────────────────
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: promote-images
     # Required reviewers configured via GitHub Environments UI
     # Go to: Settings → Environments → production → Required reviewers
     environment: production
     steps:
       - uses: actions/checkout@v4
 
-      - name: Resolve image tag
-        id: tag
-        run: |
-          if [ "${{ github.event_name }}" == "push" ]; then
-            echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "tag=${{ github.event.inputs.image_tag }}" >> "$GITHUB_OUTPUT"
-          fi
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
 
-      # Placeholder deploy step — real deploy configured in CHG-003
-      - name: Deploy to production (placeholder)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # --- DATABASE MIGRATIONS ---
+      - name: Run Prisma migrations (Production)
+        if: ${{ secrets.DATABASE_URL != '' }}
+        run: pnpm db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      # --- DEPLOY FRONTEND WEB TO VERCEL ---
+      - name: Install Vercel CLI
+        run: pnpm add -g vercel
+
+      - name: Pull Vercel Project Info
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Build Project Artifacts (Vercel)
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy Project Artifacts to Vercel
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      # --- DEPLOY BACKEND API TO RAILWAY/RENDER ---
+      - name: Deploy API to Railway
+        if: ${{ secrets.RAILWAY_TOKEN != '' }}
         run: |
-          echo "🚀 Deploying linguoup-api:${{ steps.tag.outputs.tag }} to production"
-          echo "🚀 Deploying linguoup-web:${{ steps.tag.outputs.tag }} to production"
-          echo "⚠️  Real deploy target will be configured in CHG-003 (AWS/ECS)"
+          npm i -g @railway/cli
+          railway deploy --service linguoup-api
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Deploy API to Render
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
+        run: |
+          curl -f "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
