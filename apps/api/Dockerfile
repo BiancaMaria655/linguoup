@@ -11,6 +11,8 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 
 # Copy package.json files for all workspaces (needed for pnpm install)
 COPY packages/config/package.json ./packages/config/package.json
+COPY packages/database/package.json ./packages/database/package.json
+COPY packages/ui/package.json ./packages/ui/package.json
 COPY apps/api/package.json ./apps/api/package.json
 
 # Install all dependencies (including devDependencies for build)
@@ -21,6 +23,9 @@ COPY packages/ ./packages/
 
 # Copy api source
 COPY apps/api/ ./apps/api/
+
+# Build the database client
+RUN pnpm --filter=@linguoup/database build
 
 # Build the api
 RUN pnpm --filter=api build
@@ -38,6 +43,8 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 
 # Copy package.json files for production install
 COPY packages/config/package.json ./packages/config/package.json
+COPY packages/database/package.json ./packages/database/package.json
+COPY packages/ui/package.json ./packages/ui/package.json
 COPY apps/api/package.json ./apps/api/package.json
 
 # Install only production dependencies
