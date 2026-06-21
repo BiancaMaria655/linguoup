@@ -1,0 +1,86 @@
+version: 2
+
+updates:
+  # ─── Root monorepo npm dependencies ─────────────────────────────────────────
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    assignees:
+      - "vitortonaco"
+    reviewers:
+      - "vitortonaco"
+    labels:
+      - "dependencies"
+      - "automated"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # ─── API app npm dependencies ─────────────────────────────────────────────
+  - package-ecosystem: "npm"
+    directory: "/apps/api"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    assignees:
+      - "vitortonaco"
+    reviewers:
+      - "vitortonaco"
+    labels:
+      - "dependencies"
+      - "automated"
+      - "api"
+    commit-message:
+      prefix: "chore(deps/api)"
+
+  # ─── Web app npm dependencies ─────────────────────────────────────────────
+  - package-ecosystem: "npm"
+    directory: "/apps/web"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    assignees:
+      - "vitortonaco"
+    reviewers:
+      - "vitortonaco"
+    labels:
+      - "dependencies"
+      - "automated"
+      - "web"
+    commit-message:
+      prefix: "chore(deps/web)"
+
+  # ─── Mobile app npm dependencies ──────────────────────────────────────────
+  - package-ecosystem: "npm"
+    directory: "/apps/mobile"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    assignees:
+      - "vitortonaco"
+    reviewers:
+      - "vitortonaco"
+    labels:
+      - "dependencies"
+      - "automated"
+      - "mobile"
+    commit-message:
+      prefix: "chore(deps/mobile)"
+
+  # ─── GitHub Actions ─────────────────────────────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    assignees:
+      - "vitortonaco"
+    reviewers:
+      - "vitortonaco"
+    labels:
+      - "dependencies"
+      - "automated"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(ci)"

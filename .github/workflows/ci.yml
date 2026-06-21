@@ -1,0 +1,171 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  changes:
+    name: Detect Changed Apps
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.filter.outputs.api }}
+      web: ${{ steps.filter.outputs.web }}
+      mobile: ${{ steps.filter.outputs.mobile }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            api:
+              - 'apps/api/**'
+              - 'packages/**'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+            web:
+              - 'apps/web/**'
+              - 'packages/**'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+            mobile:
+              - 'apps/mobile/**'
+              - 'packages/**'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+
+  # ─── LINT ──────────────────────────────────────────────────────────────────
+  lint:
+    name: Lint
+    needs: changes
+    if: needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true' || needs.changes.outputs.mobile == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint all apps
+        run: |
+          FLAGS=""
+          if [ "${{ needs.changes.outputs.api }}" == "true" ]; then FLAGS="$FLAGS --filter=api"; fi
+          if [ "${{ needs.changes.outputs.web }}" == "true" ]; then FLAGS="$FLAGS --filter=web"; fi
+          if [ "${{ needs.changes.outputs.mobile }}" == "true" ]; then FLAGS="$FLAGS --filter=mobile"; fi
+          pnpm $FLAGS lint
+
+  # ─── TYPECHECK ─────────────────────────────────────────────────────────────
+  typecheck:
+    name: Typecheck
+    needs: changes
+    if: needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true' || needs.changes.outputs.mobile == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter=@linguoup/database build
+
+      - name: Typecheck all apps
+        run: |
+          FLAGS=""
+          if [ "${{ needs.changes.outputs.api }}" == "true" ]; then FLAGS="$FLAGS --filter=api"; fi
+          if [ "${{ needs.changes.outputs.web }}" == "true" ]; then FLAGS="$FLAGS --filter=web"; fi
+          if [ "${{ needs.changes.outputs.mobile }}" == "true" ]; then FLAGS="$FLAGS --filter=mobile"; fi
+          pnpm $FLAGS typecheck
+
+  # ─── TEST ──────────────────────────────────────────────────────────────────
+  test:
+    name: Test
+    needs: changes
+    if: needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true' || needs.changes.outputs.mobile == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter=@linguoup/database build
+
+      - name: Run tests
+        run: |
+          FLAGS=""
+          if [ "${{ needs.changes.outputs.api }}" == "true" ]; then FLAGS="$FLAGS --filter=api"; fi
+          if [ "${{ needs.changes.outputs.web }}" == "true" ]; then FLAGS="$FLAGS --filter=web"; fi
+          if [ "${{ needs.changes.outputs.mobile }}" == "true" ]; then FLAGS="$FLAGS --filter=mobile"; fi
+          pnpm $FLAGS test
+
+  # ─── BUILD ─────────────────────────────────────────────────────────────────
+  build:
+    name: Build
+    needs: [changes, lint, typecheck, test]
+    if: needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter=@linguoup/database build
+
+      - name: Build all apps
+        run: |
+          FLAGS=""
+          if [ "${{ needs.changes.outputs.api }}" == "true" ]; then FLAGS="$FLAGS --filter=api"; fi
+          if [ "${{ needs.changes.outputs.web }}" == "true" ]; then FLAGS="$FLAGS --filter=web"; fi
+          pnpm $FLAGS build

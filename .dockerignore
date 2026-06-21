@@ -1,0 +1,42 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build artifacts
+.next
+dist
+**/dist
+**/.next
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+**/logs
+
+# Version control
+.git
+.gitignore
+
+# Dev tools
+.agents
+.bin
+openspec
+docs
+
+# Test artifacts
+coverage
+**/coverage
+
+# Docker
+.dockerignore
+**/Dockerfile
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
