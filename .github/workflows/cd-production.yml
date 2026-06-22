@@ -58,8 +58,52 @@ jobs:
         run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       # --- DEPLOY BACKEND API TO RAILWAY ---
+      # We use the Railway Public API (GraphQL) to trigger a deployment from the
+      # current GitHub commit instead of uploading source files via `railway up`.
+      # Uploading a full monorepo via `railway up` causes HTTP 500 on Railway's
+      # side due to payload size. The API-based trigger is lighter and more reliable.
       - name: Deploy API to Railway
         if: ${{ env.RAILWAY_TOKEN != '' }}
+        env:
+          RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
+          RAILWAY_ENVIRONMENT_ID: ${{ secrets.RAILWAY_ENVIRONMENT_ID }}
         run: |
-          npm i -g @railway/cli
-          railway up --service api
+          COMMIT_SHA="${{ github.sha }}"
+
+          PAYLOAD=$(cat <<EOF
+          {
+            "query": "mutation deploymentCreate(\$input: DeploymentCreateInput!) { deploymentCreate(input: \$input) { id status } }",
+            "variables": {
+              "input": {
+                "serviceId": "$RAILWAY_SERVICE_ID",
+                "environmentId": "$RAILWAY_ENVIRONMENT_ID",
+                "commitHash": "$COMMIT_SHA"
+              }
+            }
+          }
+          EOF
+          )
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X POST https://backboard.railway.com/graphql/v2 \
+            -H "Authorization: Bearer $RAILWAY_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD")
+
+          HTTP_BODY=$(echo "$RESPONSE" | head -n -1)
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n 1)
+
+          echo "Railway API response (HTTP $HTTP_CODE):"
+          echo "$HTTP_BODY"
+
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "❌ Railway deployment request failed with HTTP $HTTP_CODE"
+            exit 1
+          fi
+
+          if echo "$HTTP_BODY" | grep -q '"errors"'; then
+            echo "❌ Railway API returned errors"
+            exit 1
+          fi
+
+          echo "✅ Railway deployment triggered successfully"
