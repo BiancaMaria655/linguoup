@@ -18,7 +18,7 @@ COPY packages/database/package.json ./packages/database/package.json
 COPY packages/ui/package.json ./packages/ui/package.json
 COPY apps/api/package.json ./apps/api/package.json
 
-# Install ALL dependencies (dev included) for the build step
+# Install ALL dependencies (dev included — needed for build & prisma generate)
 RUN pnpm install --frozen-lockfile
 
 # Copy shared packages source
@@ -27,53 +27,34 @@ COPY packages/ ./packages/
 # Copy api source
 COPY apps/api/ ./apps/api/
 
-# Build the database client
+# Build the database client (runs: prisma generate && tsc)
 RUN pnpm --filter=@linguoup/database build
 
 # Build the api
 RUN pnpm --filter=api build
 
-# ---- Prod-deps stage ----
-# Fresh install with only production dependencies, avoiding pnpm prune
-# which can corrupt the virtual store / hoisted modules in monorepos.
-FROM node:22-alpine AS prod-deps
-
-RUN apk add --no-cache libc6-compat openssl
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-WORKDIR /app
-
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
-COPY packages/config/package.json ./packages/config/package.json
-COPY packages/database/package.json ./packages/database/package.json
-COPY packages/ui/package.json ./packages/ui/package.json
-COPY apps/api/package.json ./apps/api/package.json
-
-# Install only production dependencies
-# Note: prisma generate is NOT run here — prisma CLI is a devDep.
-# The generated client is copied from the builder stage instead.
-RUN pnpm install --frozen-lockfile --prod
-
 # ---- Runner stage ----
+# NOTE: We intentionally copy the full node_modules from builder (including devDeps).
+# Attempts to use pnpm prune or a separate --prod install stage both fail because
+# pnpm's virtual store (.pnpm/) puts the prisma-generated query engine binary in
+# an unpredictable nested path inside the store, making targeted COPY impossible.
+# The trade-off is a larger image; correctness is the priority here.
 FROM node:22-alpine AS runner
 
-# Install dependencies required by Prisma
+# Install system dependencies required by Prisma query engine
 RUN apk add --no-cache libc6-compat openssl
 
 WORKDIR /app
 
-# Copy production node_modules (clean, no broken symlinks from prune)
-COPY --from=prod-deps /app/node_modules ./node_modules
-COPY --from=prod-deps /app/packages/database/node_modules ./packages/database/node_modules
-COPY --from=prod-deps /app/packages/database/package.json ./packages/database/package.json
+# Copy the FULL node_modules from builder.
+# This guarantees that .prisma/client (query engine + generated JS) is present
+# exactly where pnpm's virtual store placed it during prisma generate.
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/packages/database/node_modules ./packages/database/node_modules
 
-# Copy the generated Prisma client from builder (already ran prisma generate)
-# In pnpm isolated monorepo mode, the client is generated at the package level,
-# not at the root node_modules. We overlay it on top of what prod-deps installed.
-COPY --from=builder /app/packages/database/node_modules/.prisma ./packages/database/node_modules/.prisma
-
-# Copy built artifacts from builder
+# Copy built artifacts
 COPY --from=builder /app/packages/database/dist ./packages/database/dist
+COPY --from=builder /app/packages/database/package.json ./packages/database/package.json
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
 COPY --from=builder /app/package.json ./package.json
