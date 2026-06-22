@@ -58,10 +58,9 @@ jobs:
         run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       # --- DEPLOY BACKEND API TO RAILWAY ---
-      # We use the Railway Public API (GraphQL) to trigger a deployment from the
-      # current GitHub commit instead of uploading source files via `railway up`.
-      # Uploading a full monorepo via `railway up` causes HTTP 500 on Railway's
-      # side due to payload size. The API-based trigger is lighter and more reliable.
+      # Uses Railway Public API (GraphQL v2) to trigger a deployment from the
+      # current GitHub commit via serviceInstanceDeployV2 (replaces the deprecated
+      # deploymentCreate mutation that was removed from the Railway schema).
       - name: Deploy API to Railway
         if: ${{ env.RAILWAY_TOKEN != '' }}
         env:
@@ -72,20 +71,18 @@ jobs:
 
           PAYLOAD=$(cat <<EOF
           {
-            "query": "mutation deploymentCreate(\$input: DeploymentCreateInput!) { deploymentCreate(input: \$input) { id status } }",
+            "query": "mutation serviceInstanceDeployV2(\$serviceId: String!, \$environmentId: String!, \$commitSha: String) { serviceInstanceDeployV2(serviceId: \$serviceId, environmentId: \$environmentId, commitSha: \$commitSha) }",
             "variables": {
-              "input": {
-                "serviceId": "$RAILWAY_SERVICE_ID",
-                "environmentId": "$RAILWAY_ENVIRONMENT_ID",
-                "commitHash": "$COMMIT_SHA"
-              }
+              "serviceId": "$RAILWAY_SERVICE_ID",
+              "environmentId": "$RAILWAY_ENVIRONMENT_ID",
+              "commitSha": "$COMMIT_SHA"
             }
           }
           EOF
           )
 
           RESPONSE=$(curl -s -w "\n%{http_code}" \
-            -X POST https://backboard.railway.com/graphql/v2 \
+            -X POST https://backboard.railway.app/graphql/v2 \
             -H "Authorization: Bearer $RAILWAY_TOKEN" \
             -H "Content-Type: application/json" \
             -d "$PAYLOAD")
