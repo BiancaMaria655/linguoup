@@ -50,13 +50,9 @@ COPY packages/ui/package.json ./packages/ui/package.json
 COPY apps/api/package.json ./apps/api/package.json
 
 # Install only production dependencies
+# Note: prisma generate is NOT run here — prisma CLI is a devDep.
+# The generated client is copied from the builder stage instead.
 RUN pnpm install --frozen-lockfile --prod
-
-# Copy the Prisma source so the client can be regenerated
-COPY packages/database/ ./packages/database/
-
-# Regenerate Prisma client for production (binaries differ from builder)
-RUN pnpm --filter=@linguoup/database exec prisma generate
 
 # ---- Runner stage ----
 FROM node:22-alpine AS runner
@@ -70,6 +66,10 @@ WORKDIR /app
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=prod-deps /app/packages/database/node_modules ./packages/database/node_modules
 COPY --from=prod-deps /app/packages/database/package.json ./packages/database/package.json
+
+# Copy the generated Prisma client from builder (already ran prisma generate)
+# .prisma/client contains the query engine binary + generated JS
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 # Copy built artifacts from builder
 COPY --from=builder /app/packages/database/dist ./packages/database/dist
