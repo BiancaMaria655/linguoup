@@ -38,7 +38,6 @@ jobs:
       - name: Run Prisma migrations (Production)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DIRECT_URL: ${{ secrets.DIRECT_URL }}
         run: pnpm db:migrate
 
       # --- DEPLOY FRONTEND WEB TO VERCEL ---
