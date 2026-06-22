@@ -68,8 +68,9 @@ COPY --from=prod-deps /app/packages/database/node_modules ./packages/database/no
 COPY --from=prod-deps /app/packages/database/package.json ./packages/database/package.json
 
 # Copy the generated Prisma client from builder (already ran prisma generate)
-# .prisma/client contains the query engine binary + generated JS
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+# In pnpm isolated monorepo mode, the client is generated at the package level,
+# not at the root node_modules. We overlay it on top of what prod-deps installed.
+COPY --from=builder /app/packages/database/node_modules/.prisma ./packages/database/node_modules/.prisma
 
 # Copy built artifacts from builder
 COPY --from=builder /app/packages/database/dist ./packages/database/dist
