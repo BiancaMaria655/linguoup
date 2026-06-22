@@ -18,7 +18,6 @@ jobs:
     # Go to: Settings → Environments → production → Required reviewers
     environment: production
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
     steps:
       - uses: actions/checkout@v4
@@ -37,7 +36,9 @@ jobs:
 
       # --- DATABASE MIGRATIONS ---
       - name: Run Prisma migrations (Production)
-        if: ${{ env.DATABASE_URL != '' }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
         run: pnpm db:migrate
 
       # --- DEPLOY FRONTEND WEB TO VERCEL ---
