@@ -34,7 +34,8 @@ RUN pnpm --filter=@linguoup/database build
 RUN pnpm --filter=api build
 
 # Prune devDependencies to keep production image light
-RUN pnpm prune --prod
+# --config.confirmModulesPurge=false: suppresses interactive TTY prompt in Docker build
+RUN pnpm prune --prod --config.confirmModulesPurge=false
 
 # ---- Runner stage ----
 FROM node:22-alpine AS runner
