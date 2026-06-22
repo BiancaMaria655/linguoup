@@ -62,4 +62,4 @@ jobs:
         if: ${{ env.RAILWAY_TOKEN != '' }}
         run: |
           npm i -g @railway/cli
-          railway deploy --service linguoup-api
+          railway up --service linguoup-api
