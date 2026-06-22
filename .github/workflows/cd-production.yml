@@ -62,7 +62,4 @@ jobs:
         if: ${{ env.RAILWAY_TOKEN != '' }}
         run: |
           npm i -g @railway/cli
-          echo "=== Listando serviços no Railway ==="
-          railway service list
-          echo "=== Iniciando deploy no Railway ==="
-          railway up --service api || railway up --service linguoup || railway up
+          railway up --service api
