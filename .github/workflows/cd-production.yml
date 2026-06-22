@@ -42,7 +42,7 @@ jobs:
 
       # --- DEPLOY FRONTEND WEB TO VERCEL ---
       - name: Install Vercel CLI
-        run: pnpm add -g vercel
+        run: npm i -g vercel
 
       - name: Pull Vercel Project Info
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
