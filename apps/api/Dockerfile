@@ -18,7 +18,7 @@ COPY packages/database/package.json ./packages/database/package.json
 COPY packages/ui/package.json ./packages/ui/package.json
 COPY apps/api/package.json ./apps/api/package.json
 
-# Install all dependencies (including devDependencies for build)
+# Install ALL dependencies (dev included) for the build step
 RUN pnpm install --frozen-lockfile
 
 # Copy shared packages source
@@ -33,9 +33,30 @@ RUN pnpm --filter=@linguoup/database build
 # Build the api
 RUN pnpm --filter=api build
 
-# Prune devDependencies to keep production image light
-# --config.confirmModulesPurge=false: suppresses interactive TTY prompt in Docker build
-RUN pnpm prune --prod --config.confirmModulesPurge=false
+# ---- Prod-deps stage ----
+# Fresh install with only production dependencies, avoiding pnpm prune
+# which can corrupt the virtual store / hoisted modules in monorepos.
+FROM node:22-alpine AS prod-deps
+
+RUN apk add --no-cache libc6-compat openssl
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+WORKDIR /app
+
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
+COPY packages/config/package.json ./packages/config/package.json
+COPY packages/database/package.json ./packages/database/package.json
+COPY packages/ui/package.json ./packages/ui/package.json
+COPY apps/api/package.json ./apps/api/package.json
+
+# Install only production dependencies
+RUN pnpm install --frozen-lockfile --prod
+
+# Copy the Prisma source so the client can be regenerated
+COPY packages/database/ ./packages/database/
+
+# Regenerate Prisma client for production (binaries differ from builder)
+RUN pnpm --filter=@linguoup/database exec prisma generate
 
 # ---- Runner stage ----
 FROM node:22-alpine AS runner
@@ -45,12 +66,13 @@ RUN apk add --no-cache libc6-compat openssl
 
 WORKDIR /app
 
-# Copy pruned node_modules and built workspace code
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages/database/node_modules ./packages/database/node_modules
+# Copy production node_modules (clean, no broken symlinks from prune)
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=prod-deps /app/packages/database/node_modules ./packages/database/node_modules
+COPY --from=prod-deps /app/packages/database/package.json ./packages/database/package.json
+
+# Copy built artifacts from builder
 COPY --from=builder /app/packages/database/dist ./packages/database/dist
-COPY --from=builder /app/packages/database/package.json ./packages/database/package.json
-COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
 COPY --from=builder /app/package.json ./package.json
