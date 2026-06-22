@@ -5,9 +5,21 @@ import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
+
+  // CORS — permite frontend Vercel e desenvolvimento local
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3001')
+    .split(',')
+    .map((o) => o.trim());
+
+  app.enableCors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+
   app.use(cookieParser());
-  
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
