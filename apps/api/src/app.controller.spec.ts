@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { PrismaService } from './database/prisma.service';
+import { RedisService } from './database/redis.service';
 
 describe('AppController', () => {
   let appController: AppController;
@@ -8,7 +10,21 @@ describe('AppController', () => {
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
-      providers: [AppService],
+      providers: [
+        AppService,
+        {
+          provide: PrismaService,
+          useValue: {
+            $queryRaw: jest.fn(),
+          },
+        },
+        {
+          provide: RedisService,
+          useValue: {
+            ping: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     appController = app.get<AppController>(AppController);
@@ -20,3 +36,4 @@ describe('AppController', () => {
     });
   });
 });
+

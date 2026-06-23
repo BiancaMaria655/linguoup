@@ -1,0 +1,37 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - img [ref=e7]
+        - heading "LinguoUp" [level=1] [ref=e9]
+        - paragraph [ref=e10]: Painel administrativo. Gerencie usuários, conteúdo e métricas da plataforma de aprendizado de idiomas.
+      - generic [ref=e11]:
+        - generic [ref=e12]:
+          - generic [ref=e13]: Status da Infraestrutura
+          - button "↻ Atualizar" [ref=e14] [cursor=pointer]
+        - generic [ref=e15]:
+          - generic [ref=e16]:
+            - generic [ref=e19]: API
+            - generic [ref=e21]: Verificando…
+          - generic [ref=e22]:
+            - generic [ref=e25]: Banco de Dados
+            - generic [ref=e27]: Verificando…
+          - generic [ref=e28]:
+            - generic [ref=e31]: Redis / Cache
+            - generic [ref=e33]: Verificando…
+    - generic [ref=e34]:
+      - generic [ref=e35]:
+        - heading "Entrar" [level=2] [ref=e36]
+        - paragraph [ref=e37]: Acesse o painel com suas credenciais de administrador.
+      - generic [ref=e38]:
+        - generic [ref=e39]:
+          - generic [ref=e40]: E-mail
+          - textbox "E-mail" [ref=e41]:
+            - /placeholder: admin@linguoup.com
+        - generic [ref=e42]:
+          - generic [ref=e43]: Senha
+          - textbox "Senha" [ref=e44]:
+            - /placeholder: ••••••••
+        - button "Entrar no Painel" [ref=e45] [cursor=pointer]
+      - paragraph [ref=e47]: Acesso restrito a administradores. Esqueci minha senha
+  - alert [ref=e48]
