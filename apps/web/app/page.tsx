@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
+).replace(/\/+$/, "");
 
 // ── Types ────────────────────────────────────────────────
 type ServiceStatus = "ok" | "error" | "pending";
