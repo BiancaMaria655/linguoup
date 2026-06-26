@@ -12,6 +12,7 @@ import { LoggerModule } from './common/logger/logger.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '../../.env',
     }),
     DatabaseModule,
     ThrottlerModule.forRoot([{
