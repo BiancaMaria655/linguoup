@@ -33,18 +33,7 @@ O sistema SHALL exigir aprovação manual de um revisor autorizado antes de exec
 - **THEN** o job é cancelado
 - **THEN** nenhuma alteração é feita em produção
 
-### Requirement: Build do app mobile Expo via EAS
-O sistema SHALL executar o workflow de build EAS para o app mobile nos eventos de CD, gerando artefatos de build para distribuição interna.
 
-#### Scenario: Build EAS disparado com token configurado
-- **WHEN** o workflow de CD é executado e o secret `EXPO_TOKEN` está configurado
-- **THEN** `eas build --platform all --non-interactive` é executado
-- **THEN** o artefato de build fica disponível no Expo Application Services
-
-#### Scenario: Build EAS sem token configurado
-- **WHEN** o secret `EXPO_TOKEN` não está configurado
-- **THEN** o job de mobile build é pulado com log explicativo
-- **THEN** os outros jobs do pipeline continuam normalmente
 
 ### Requirement: Dependabot configurado para atualizações de dependências
 O sistema SHALL ter o Dependabot configurado para verificar atualizações de dependências npm/pnpm e de actions do GitHub semanalmente.

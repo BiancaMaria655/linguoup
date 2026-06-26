@@ -28,16 +28,7 @@ The `apps/web` directory SHALL contain a minimal Next.js App Router scaffold wit
 - **WHEN** a developer runs `pnpm dev --filter=web`
 - **THEN** Next.js dev server starts on the configured port (default 3001) without errors
 
-### Requirement: React Native mobile scaffold
-The `apps/mobile` directory SHALL contain a minimal React Native + Expo scaffold with a root screen, configured with NativeWind and Metro resolving workspace packages.
 
-#### Scenario: Mobile scaffold starts with Expo
-- **WHEN** a developer runs `pnpm dev --filter=mobile`
-- **THEN** Expo starts the dev server and Metro bundler resolves `packages/*` via `watchFolders` without errors
-
-#### Scenario: Metro resolves workspace packages
-- **WHEN** `apps/mobile/metro.config.js` configures `watchFolders` to include the monorepo root
-- **THEN** importing from `@linguoup/ui` in mobile code resolves correctly without "module not found" errors
 
 ### Requirement: Shared UI package scaffold
 The `packages/ui` directory SHALL contain a minimal package scaffold (`package.json` with `name: @linguoup/ui`) ready to receive shared React Native + React components, with no components yet.

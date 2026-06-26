@@ -21,7 +21,6 @@ jobs:
     outputs:
       api: ${{ steps.filter.outputs.api }}
       web: ${{ steps.filter.outputs.web }}
-      mobile: ${{ steps.filter.outputs.mobile }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -40,17 +39,12 @@ jobs:
               - 'packages/**'
               - 'pnpm-lock.yaml'
               - 'pnpm-workspace.yaml'
-            mobile:
-              - 'apps/mobile/**'
-              - 'packages/**'
-              - 'pnpm-lock.yaml'
-              - 'pnpm-workspace.yaml'
 
   # ─── LINT ──────────────────────────────────────────────────────────────────
   lint:
     name: Lint
     needs: changes
-    if: needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true' || needs.changes.outputs.mobile == 'true'
+    if: needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -72,14 +66,13 @@ jobs:
           FLAGS=""
           if [ "${{ needs.changes.outputs.api }}" == "true" ]; then FLAGS="$FLAGS --filter=api"; fi
           if [ "${{ needs.changes.outputs.web }}" == "true" ]; then FLAGS="$FLAGS --filter=web"; fi
-          if [ "${{ needs.changes.outputs.mobile }}" == "true" ]; then FLAGS="$FLAGS --filter=mobile"; fi
           pnpm $FLAGS lint
 
   # ─── TYPECHECK ─────────────────────────────────────────────────────────────
   typecheck:
     name: Typecheck
     needs: changes
-    if: needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true' || needs.changes.outputs.mobile == 'true'
+    if: needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -104,14 +97,13 @@ jobs:
           FLAGS=""
           if [ "${{ needs.changes.outputs.api }}" == "true" ]; then FLAGS="$FLAGS --filter=api"; fi
           if [ "${{ needs.changes.outputs.web }}" == "true" ]; then FLAGS="$FLAGS --filter=web"; fi
-          if [ "${{ needs.changes.outputs.mobile }}" == "true" ]; then FLAGS="$FLAGS --filter=mobile"; fi
           pnpm $FLAGS typecheck
 
   # ─── TEST ──────────────────────────────────────────────────────────────────
   test:
     name: Test
     needs: changes
-    if: needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true' || needs.changes.outputs.mobile == 'true'
+    if: needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -136,7 +128,6 @@ jobs:
           FLAGS=""
           if [ "${{ needs.changes.outputs.api }}" == "true" ]; then FLAGS="$FLAGS --filter=api"; fi
           if [ "${{ needs.changes.outputs.web }}" == "true" ]; then FLAGS="$FLAGS --filter=web"; fi
-          if [ "${{ needs.changes.outputs.mobile }}" == "true" ]; then FLAGS="$FLAGS --filter=mobile"; fi
           pnpm $FLAGS test
 
   # ─── BUILD ─────────────────────────────────────────────────────────────────

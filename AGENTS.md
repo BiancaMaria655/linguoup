@@ -100,8 +100,7 @@ Evitar duplicação de responsabilidades entre bibliotecas.
 
 | Camada          | Tecnologia                                              |
 | --------------- | ------------------------------------------------------- |
-| Mobile          | React Native + NativeWind + Zustand + TanStack Query    |
-| Web Admin       | Next.js (App Router) + Tailwind CSS + TanStack Query    |
+| Web (Client/Admin) | Next.js (App Router) + Tailwind CSS + Zustand + Query |
 | Backend         | NestJS + TypeScript + Node.js LTS                       |
 | Banco           | PostgreSQL 15+ + Prisma ORM                             |
 | Cache           | Redis 7+                                                |
@@ -128,8 +127,7 @@ Evitar duplicação de responsabilidades entre bibliotecas.
 ```text
 .
 ├── apps/
-│   ├── mobile/        # React Native — onboarding, lições, gamificação, dashboard
-│   ├── web/           # Next.js — painel administrativo
+│   ├── web/           # Next.js — portal do aluno (onboarding, lições, etc.) e painel administrativo
 │   └── api/           # NestJS — auth, users, learning, progress, gamification, notifications
 ├── packages/
 │   ├── ui/            # Componentes compartilhados (design system)
@@ -179,7 +177,7 @@ pnpm db:seed
 ```bash
 pnpm dev                    # todos os apps
 pnpm dev --filter=api       # apenas api
-pnpm dev --filter=mobile    # apenas mobile
+pnpm dev --filter=web       # apenas web
 ```
 
 ### Build
@@ -248,7 +246,7 @@ query-docs
 
 Use Context7 **obrigatoriamente** para: APIs · versões · breaking changes · exemplos oficiais · configurações · comportamento de bibliotecas.
 
-Bibliotecas obrigatórias: NestJS · Prisma ORM · React Native · Expo · TanStack Query · Zustand · NativeWind · Auth0 · AWS Cognito · OpenTelemetry.
+Bibliotecas obrigatórias: NestJS · Prisma ORM · Next.js · TanStack Query · Zustand · Tailwind CSS · Auth0 · AWS Cognito · OpenTelemetry.
 
 **Não confie no conhecimento interno do modelo** para detalhes de frameworks e bibliotecas.
 
