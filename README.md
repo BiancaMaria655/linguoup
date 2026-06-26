@@ -1,6 +1,6 @@
 # LinguoUp
 
-Plataforma **mobile-first** de aprendizado de idiomas baseada em **microaprendizagem**. Transforma pequenos momentos do dia em oportunidades de estudo por meio de lições rápidas, personalização, gamificação e mecanismos de formação de hábitos.
+Plataforma **web responsiva** de aprendizado de idiomas baseada em **microaprendizagem**. Transforma pequenos momentos do dia em oportunidades de estudo por meio de lições rápidas, personalização, gamificação e mecanismos de formação de hábitos.
 
 ## Sobre o projeto
 
@@ -16,7 +16,7 @@ O **LinguoUp** foi concebido para adultos entre 18 e 45 anos com rotinas ocupada
 - Reforço inteligente com repetição espaçada
 - Prática contextual baseada em situações do cotidiano
 - Metas diárias personalizáveis
-- Experiência mobile-first com acesso offline (versões futuras)
+- Experiência responsiva acessível no desktop e em dispositivos móveis (mobile web)
 - Sistema de lembretes inteligentes baseado em comportamento
 
 ## Funcionalidades
@@ -47,10 +47,10 @@ O projeto adota uma **arquitetura modular monolith** no MVP, com evolução plan
 
 ```text
 ┌─────────────────┐     HTTPS/REST      ┌─────────────────┐
-│  App Mobile     │ ◄─────────────────► │  API Backend    │
-│  (React Native) │                     │  (NestJS)       │
+│Web Client/Admin │ ◄─────────────────► │  API Backend    │
+│(Next.js)        │                     │  (NestJS)       │
 └─────────────────┘                     └────────┬────────┘
-                                               │
+                                                 │
                     ┌──────────────────────────┼──────────────────────────┐
                     ▼                          ▼                          ▼
              ┌────────────┐            ┌────────────┐            ┌────────────┐
@@ -62,7 +62,8 @@ O projeto adota uma **arquitetura modular monolith** no MVP, com evolução plan
 
 | Componente | Responsabilidade |
 |------------|------------------|
-| Frontend Mobile | Onboarding, lições, gamificação, dashboard, notificações e modo offline |
+| Web Client (Next.js) | Portal do aluno com onboarding, lições, gamificação, dashboard, perfil e progresso |
+| Web Admin (Next.js) | Painel administrativo para gestão de conteúdo, relatórios e operação |
 | API Backend | Autenticação, usuários, conteúdo, trilhas, gamificação, métricas e notificações |
 | Banco de Dados | Persistência transacional, progresso e gestão de usuários |
 | Cache | Sessões, rankings e conteúdo frequentemente acessado |
@@ -76,9 +77,8 @@ O projeto adota uma **arquitetura modular monolith** no MVP, com evolução plan
 | Tecnologia | Uso |
 |------------|-----|
 | TypeScript | Linguagem |
-| React Native | Aplicativo mobile |
-| Next.js | Painel web administrativo |
-| NativeWind + Tailwind CSS | Estilização |
+| Next.js | Portal do aluno e painel administrativo |
+| Tailwind CSS | Estilização responsiva |
 | Zustand | Gerenciamento de estado |
 | TanStack Query | Data fetching |
 
@@ -175,8 +175,7 @@ pnpm dev
 
 # Ou individualmente
 pnpm dev --filter=api     # NestJS API em http://localhost:3000
-pnpm dev --filter=web     # Next.js Admin em http://localhost:3001
-pnpm dev --filter=mobile  # Expo Metro bundler
+pnpm dev --filter=web     # Next.js Web Client/Admin em http://localhost:3001
 ```
 
 ### 7. Acessar a aplicação
@@ -193,8 +192,7 @@ pnpm dev --filter=mobile  # Expo Metro bundler
 .
 ├── apps/
 │   ├── api/        # NestJS — auth, users, learning, progress, gamification
-│   ├── web/        # Next.js — painel administrativo (App Router)
-│   └── mobile/     # React Native + Expo — app móvel
+│   └── web/        # Next.js — portal do aluno e painel administrativo (App Router)
 ├── packages/
 │   ├── config/     # ESLint, TSConfig e Prettier compartilhados
 │   ├── ui/         # Componentes UI compartilhados (design system)
@@ -216,8 +214,7 @@ pnpm dev --filter=mobile  # Expo Metro bundler
 # Desenvolvimento
 pnpm dev                    # todos os apps
 pnpm dev --filter=api       # apenas API
-pnpm dev --filter=web       # apenas web admin
-pnpm dev --filter=mobile    # apenas mobile
+pnpm dev --filter=web       # apenas web (portal + admin)
 
 # Build
 pnpm build                  # todos os apps
@@ -251,7 +248,7 @@ A documentação completa do projeto está na pasta [`docs/`](docs/):
 | [PRD — Requisitos do Produto](docs/prd.md) | Funcionalidades, personas, métricas e roadmap de versões |
 | [Especificação Técnica](docs/spec_tech.md) | Arquitetura, stack, APIs, segurança e diretrizes de desenvolvimento |
 | [Especificação de UI](docs/spec_ui.md) | Interfaces, fluxos de navegação e diretrizes de UX |
-| [Prompt de Design](docs/prompt_desenho.md) | Diretrizes para prototipação mobile-first |
+| [Prompt de Design](docs/prompt_desenho.md) | Diretrizes para prototipação web responsiva |
 
 ## API
 
@@ -357,7 +354,6 @@ Configure em **Settings → Secrets and variables → Actions**:
 | Secret | Descrição | Obrigatório |
 |--------|-----------|-------------|
 | `SONAR_TOKEN` | Token de autenticação do SonarCloud | Opcional (análise pulada se ausente) |
-| `EXPO_TOKEN` | Token de autenticação do Expo / EAS | Opcional (build mobile pulado se ausente) |
 | `ECR_REGISTRY` | URL do registry AWS ECR (`<account>.dkr.ecr.<region>.amazonaws.com`) | Opcional até CHG-003 (push pulado se ausente) |
 | `AWS_ACCESS_KEY_ID` | Credencial AWS para login no ECR | Necessário junto com `ECR_REGISTRY` |
 | `AWS_SECRET_ACCESS_KEY` | Credencial AWS para login no ECR | Necessário junto com `ECR_REGISTRY` |

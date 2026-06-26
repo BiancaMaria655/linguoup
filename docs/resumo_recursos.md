@@ -9,8 +9,7 @@ Este documento apresenta uma visão consolidada de todos os recursos, infraestru
 O projeto está estruturado como um **Monorepo** utilizando o gerenciador de pacotes `pnpm` (com workspaces definidos no `pnpm-workspace.yaml`). Essa estrutura separa as responsabilidades de forma clara e isolada:
 
 * **`apps/api`**: Serviço backend desenvolvido em **NestJS** e TypeScript, contendo a lógica de negócios, banco de dados e APIs REST.
-* **`apps/mobile`**: Aplicação mobile-first desenvolvida em **React Native + Expo** e NativeWind (atualmente em estado de template/setup inicial).
-* **`apps/web`**: Painel administrativo web desenvolvido em **Next.js** App Router e Tailwind CSS (atualmente em estado de template/setup inicial).
+* **`apps/web`**: Portal do aluno (onboarding, lições, gamificação, dashboard, perfil) e painel administrativo web desenvolvido em **Next.js** App Router e Tailwind CSS (atualmente em estado de template/setup inicial).
 * **`apps/frontend`**: Configuração e base para testes E2E utilizando **Playwright**.
 * **`packages/database`**: Pacote compartilhado contendo as migrações, sementes (seeds) e a configuração do cliente **Prisma ORM**.
 * **`packages/ui`**: Placeholder de biblioteca de componentes visuais compartilhados.
@@ -79,7 +78,7 @@ A automação do projeto foi desenvolvida para suportar integração contínua (
   1. Executa validações automatizadas (`pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`).
   2. Executa migrações automáticas de banco de dados (`prisma migrate deploy`).
   3. Deploy da API Backend no **Railway**.
-  4. Deploy do Painel Web Admin e Frontend no **Vercel**.
+  4. Deploy do Frontend Web (Portal do Aluno e Painel Admin) no **Vercel**.
 * **Deploy Local**: Setup pronto via `docker-compose.yml` para levantar a imagem do banco PostgreSQL com um clique.
 
 ---
@@ -94,4 +93,4 @@ Com a fundação técnica e a autenticação concluídas, os próximos domínios
 4. **API de Gamificação** (`chg-008`): Liberação de insígnias, conquistas e ganho de pontos de experiência (XP).
 5. **API de Revisão Inteligente** (`chg-009`): Implementação do algoritmo SuperMemo (SM-2) para revisões periódicas.
 6. **API de Notificações** (`chg-010`): Lembretes e notificações push.
-7. **Aplicativo Mobile (Fase 3)**: Design system com NativeWind e conexão com as APIs desenvolvidas.
+7. **Frontend Web (Fase 3)**: Design system com Tailwind CSS e interface responsiva conectada às APIs desenvolvidas.

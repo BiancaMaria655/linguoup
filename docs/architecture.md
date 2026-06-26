@@ -6,14 +6,13 @@
 
 Este documento define a arquitetura de software do produto **LinguoUp**, estabelecendo diretrizes técnicas, restrições arquiteturais e requisitos não funcionais para implementação por equipes humanas e agentes de inteligência artificial.
 
-O LinguoUp é uma plataforma mobile-first de aprendizado de idiomas baseada em microaprendizagem. O objetivo do produto é transformar pequenos momentos do dia em oportunidades de estudo por meio de lições rápidas (3–5 min), personalização, gamificação e mecanismos inteligentes de formação de hábitos, suportando até 1 milhão de usuários ativos com alta disponibilidade e segurança.
+O LinguoUp é uma plataforma web responsiva de aprendizado de idiomas baseada em microaprendizagem. O objetivo do produto é transformar pequenos momentos do dia em oportunidades de estudo por meio de lições rápidas (3–5 min), personalização, gamificação e mecanismos inteligentes de formação de hábitos, suportando até 1 milhão de usuários ativos com alta disponibilidade e segurança.
 
 ### Escopo
 
 A arquitetura contempla:
 
-* **Frontend Mobile** — Aplicativo React Native (iOS e Android), responsável por onboarding, lições, gamificação, dashboard, notificações e modo offline.
-* **Frontend Web Admin** — Painel administrativo Next.js para gestão de conteúdo, relatórios e operação.
+* **Frontend Web (Client/Admin)** — Aplicação Next.js responsiva, responsável por onboarding, lições, gamificação, dashboard, perfil, progresso e painel administrativo para gestão de conteúdo.
 * **Backend** — API NestJS com domínios de auth, users, learning, progress, gamification e notifications.
 * **Banco de Dados** — PostgreSQL como fonte de verdade transacional; Redis como cache de sessões, rankings e conteúdo frequente.
 * **Storage** — AWS S3 para áudios, imagens, conteúdo multimídia e pacotes offline.
@@ -35,23 +34,14 @@ A arquitetura contempla:
 
 ### Stack Tecnológica
 
-#### Frontend Mobile
-
-* Linguagem: TypeScript
-* Framework: React Native
-* Roteamento: React Navigation
-* Estilização: NativeWind (Tailwind CSS para React Native)
-* Gerenciamento de Estado (servidor): TanStack Query
-* Gerenciamento de Estado (UI/global): Zustand
-* Formulários locais: useState
-* Suporte offline: React Native MMKV / AsyncStorage + sincronização via TanStack Query
-
-#### Frontend Web Admin
+#### Frontend Web (Next.js)
 
 * Linguagem: TypeScript
 * Framework: Next.js (App Router)
 * Estilização: Tailwind CSS
-* Gerenciamento de Estado: TanStack Query + Zustand
+* Gerenciamento de Estado (servidor): TanStack Query
+* Gerenciamento de Estado (UI/global): Zustand
+* Formulários locais: useState
 
 #### Backend
 
@@ -108,8 +98,7 @@ A arquitetura contempla:
 ```text
 .
 ├── apps/
-│   ├── mobile/        # React Native — onboarding, lições, gamificação, dashboard
-│   ├── web/           # Next.js — painel administrativo (gestão, relatórios, operação)
+│   ├── web/           # Next.js — portal do aluno e painel administrativo
 │   └── api/           # NestJS — domínios: auth, users, learning, progress, gamification, notifications
 ├── packages/
 │   ├── ui/            # Componentes compartilhados (design system)
@@ -136,7 +125,7 @@ A arquitetura contempla:
 * O **backend (NestJS)** é a única fonte de verdade para regras de negócio. Nenhuma regra de negócio deve existir no frontend.
 * O **PostgreSQL** é a fonte de verdade para dados transacionais e de progresso do usuário.
 * O **Redis** é a fonte de verdade para dados de sessão e rankings em tempo real.
-* Os frontends (mobile e web admin) são consumidores das APIs; não tomam decisões de negócio.
+* A aplicação frontend web é consumidora das APIs; não toma decisões de negócio.
 
 ### Política de Comunicação entre Camadas
 
@@ -306,14 +295,12 @@ Padrão de resposta de erro:
 
 ### Suporte de Plataformas
 
-* **iOS:** Versões suportadas pelo React Native (últimas 2 versões principais do iOS)
-* **Android:** API 26+ (Android 8.0+)
-* **Web Admin:** Chrome, Firefox, Safari, Edge — últimas 2 versões
+* **Web (Client/Admin):** Chrome, Firefox, Safari, Edge — últimas 2 versões
 
 ### Conformidade
 
 * **LGPD** (Lei Geral de Proteção de Dados Pessoais) — dados pessoais criptografados, consentimento registrado, direito ao esquecimento implementado.
-* **WCAG 2.1 Nível AA** — acessibilidade no aplicativo mobile e painel web.
+* **WCAG 2.1 Nível AA** — acessibilidade na aplicação web.
 * **OWASP Top 10** — proteções contra SQL Injection, XSS, CSRF, SSRF aplicadas em todas as camadas.
 
 ---
@@ -391,7 +378,7 @@ Toda nova funcionalidade deve incluir:
 | --------------------------- | ----------------- |
 | Disponibilidade             | ≥ 99,5% mensal    |
 | Latência p95 (API)          | ≤ 500ms           |
-| Carregamento de tela (mobile)| ≤ 2 segundos     |
+| Carregamento de tela (web)   | ≤ 2 segundos     |
 | Taxa de erro (5xx)          | ≤ 0,1%            |
 
 ---
@@ -408,7 +395,7 @@ Componentes ativos:
 * PostgreSQL (AWS RDS) + Redis (ElastiCache)
 * Auth0 como provedor de identidade
 * AWS S3 + CloudFront para mídia
-* React Native (mobile) + Next.js (web admin)
+* Next.js (portal do aluno e painel administrativo)
 
 ---
 
@@ -419,7 +406,6 @@ Componentes ativos:
 Extrações planejadas:
 * **Notification Service** — serviço dedicado com suporte a filas (AWS SQS + SNS, Firebase Cloud Messaging, AWS SES)
 * **Recommendation Engine Service** — serviço dedicado de repetição espaçada com persistência própria
-* Suporte completo a modo offline no mobile
 * Novos idiomas de aprendizado
 * Dashboard analítico avançado
 
@@ -461,7 +447,7 @@ Funcionalidades:
 * Toda regra de negócio deve residir na camada `Domain` ou `Application`.
 * Validar `tenant_id`, autorização e entrada de dados em todo Use Case.
 
-### Frontend (React Native / Next.js)
+### Frontend (Next.js)
 
 * Componentes reutilizáveis, responsáveis apenas pela renderização.
 * Separação entre UI e lógica: hooks para acesso a APIs (TanStack Query) e estado global (Zustand).

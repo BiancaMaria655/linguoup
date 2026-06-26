@@ -6,7 +6,7 @@ O sistema SHALL executar o workflow `.github/workflows/ci.yml` automaticamente e
 #### Scenario: PR aberto com código válido
 - **WHEN** um desenvolvedor abre ou atualiza um PR para `main` ou `develop`
 - **THEN** o GitHub Actions inicia o workflow `ci.yml`
-- **THEN** os jobs `lint`, `typecheck` e `test` para `api`, `web` e `mobile` são executados em paralelo
+- **THEN** os jobs `lint`, `typecheck` e `test` para `api` e `web` são executados em paralelo
 - **THEN** todos os checks retornam status verde no PR
 
 #### Scenario: PR com falha de lint
@@ -43,7 +43,7 @@ O workflow CI SHALL usar filtros de path (`paths`) para otimizar a execução, r
 #### Scenario: Mudança apenas em `apps/api`
 - **WHEN** um PR modifica somente arquivos dentro de `apps/api/**`
 - **THEN** apenas os jobs relacionados à `api` são executados (lint, typecheck, test da api)
-- **THEN** os jobs de `web` e `mobile` são pulados ou marcados como skipped
+- **THEN** o job de `web` é pulado ou marcado como skipped
 
 #### Scenario: Mudança em `packages/*`
 - **WHEN** um PR modifica arquivos em `packages/**`

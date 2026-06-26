@@ -8,7 +8,7 @@ Milhões de pessoas desejam aprender um novo idioma, mas enfrentam dificuldades 
 
 ### Solução
 
-Uma plataforma mobile-first de aprendizado de idiomas baseada em microaprendizagem, que transforma pequenos momentos do dia em oportunidades de estudo por meio de lições rápidas, personalização, gamificação e mecanismos de formação de hábitos.
+Uma plataforma web responsiva de aprendizado de idiomas baseada em microaprendizagem, que transforma pequenos momentos do dia em oportunidades de estudo por meio de lições rápidas, personalização, gamificação e mecanismos de formação de hábitos.
 
 ### Para o público-alvo
 
@@ -22,7 +22,7 @@ Para adultos entre 18 e 45 anos com rotinas ocupadas, a plataforma oferece uma f
 * Reforço inteligente de conteúdo utilizando repetição espaçada.
 * Prática contextual baseada em situações do cotidiano.
 * Metas diárias personalizáveis.
-* Experiência mobile-first com acesso offline.
+* Experiência responsiva web acessível em qualquer dispositivo.
 * Sistema de lembretes inteligentes baseado em comportamento.
 
 ---
@@ -293,7 +293,7 @@ O produto deverá estar em conformidade com LGPD e demais regulamentações apli
 
 ### RNF-06 - Compatibilidade
 
-O aplicativo deverá funcionar nas versões suportadas de Android e iOS.
+A aplicação deverá ser compatível com as duas últimas versões dos principais navegadores web do mercado (Chrome, Firefox, Safari, Edge).
 
 ---
 
@@ -348,7 +348,7 @@ O sistema deverá garantir persistência e recuperação de progresso em caso de
 
 ### Premissas
 
-* Usuários possuem smartphones e acesso frequente à internet.
+* Usuários possuem acesso à internet e navegadores modernos (desktop ou mobile).
 * Sessões curtas são mais fáceis de incorporar à rotina.
 * Gamificação aumenta engajamento e retenção.
 * Repetição espaçada melhora retenção do aprendizado.

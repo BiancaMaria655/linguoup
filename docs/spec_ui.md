@@ -611,7 +611,7 @@ A IA deve atuar como facilitadora do aprendizado, incentivando a consistência d
 
 ### Princípios de UX
 
-* Mobile-first.
+* Responsividade fluida (Mobile Web e Desktop).
 * Máximo de 3 interações para iniciar uma lição.
 * Feedback visual imediato após ações.
 * Progresso sempre visível.
@@ -622,7 +622,7 @@ A IA deve atuar como facilitadora do aprendizado, incentivando a consistência d
 
 ### Design System (Recomendação)
 
-* Navegação inferior com 5 abas:
+* Navegação responsiva com menu lateral (sidebar) no desktop e barra inferior ou menu hambúrguer em dispositivos móveis, contendo 5 abas principais:
 
   * Início
   * Trilhas

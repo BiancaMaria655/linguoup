@@ -33,7 +33,7 @@ Justificativa:
 
 ## Componentes Principais
 
-### Frontend Mobile
+### Frontend Web (Next.js)
 
 Responsável por:
 
@@ -41,8 +41,8 @@ Responsável por:
 * Lições
 * Gamificação
 * Dashboard
-* Notificações
-* Modo Offline
+* Portal do Aluno
+* Painel Administrativo
 
 ---
 
@@ -194,9 +194,8 @@ Rollback automático.
 ## Frontend
 
 * Linguagem: TypeScript
-* Framework Mobile: React Native
-* Framework Web Administrativo: Next.js
-* Estilização: NativeWind + Tailwind CSS
+* Framework Web: Next.js (App Router)
+* Estilização: Tailwind CSS
 * Gerenciamento de Estado: Zustand
 * Data Fetching: TanStack Query
 

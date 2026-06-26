@@ -85,36 +85,3 @@ jobs:
           echo "🚀 Deploying linguoup-web:${{ needs.build-images.outputs.image-tag }} to staging"
           echo "⚠️  Real deploy target will be configured in CHG-003 (AWS/ECS)"
 
-  # ─── MOBILE BUILD (EAS) ────────────────────────────────────────────────────
-  build-mobile-eas:
-    name: Build Mobile (EAS)
-    runs-on: ubuntu-latest
-    env:
-      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: latest
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install EAS CLI
-        if: ${{ env.EXPO_TOKEN != '' }}
-        run: pnpm add -g eas-cli
-
-      - name: Build mobile with EAS
-        if: ${{ env.EXPO_TOKEN != '' }}
-        working-directory: apps/mobile
-        run: eas build --platform all --non-interactive
-
-      - name: Log skipped EAS build
-        if: ${{ env.EXPO_TOKEN == '' }}
-        run: echo "⚠️ EXPO_TOKEN secret not configured — skipping EAS build"

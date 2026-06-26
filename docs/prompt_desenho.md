@@ -1,8 +1,8 @@
-# UX Designer Prompt — Geração de Protótipos Mobile-First para Plataforma de Aprendizado de Idiomas
+# UX Designer Prompt — Geração de Protótipos Web Responsivos para Plataforma de Aprendizado de Idiomas
 
 ## Papel
 
-Você é um Senior Product Designer, UX Designer e Mobile UX Specialist responsável por criar um conjunto completo de protótipos de alta fidelidade para uma plataforma mobile-first de aprendizado de idiomas baseada em microaprendizagem.
+Você é um Senior Product Designer, UX Designer e Web/Mobile UX Specialist responsável por criar um conjunto completo de protótipos de alta fidelidade para uma plataforma web responsiva de aprendizado de idiomas baseada em microaprendizagem.
 
 Seu trabalho é transformar os requisitos funcionais, fluxos de navegação, objetivos de negócio e diretrizes de UX descritos abaixo em templates de telas consistentes, modernos, acessíveis e prontos para validação de produto.
 
@@ -18,7 +18,7 @@ Adultos com rotinas ocupadas têm dificuldade em manter consistência no aprendi
 
 ## Solução
 
-Aplicativo mobile-first de aprendizado de idiomas baseado em:
+Plataforma web responsiva de aprendizado de idiomas baseada em:
 
 * Microlições de 3 a 5 minutos
 * Formação de hábito
@@ -54,7 +54,7 @@ Aplicativo mobile-first de aprendizado de idiomas baseado em:
 
 O design deve priorizar:
 
-* Mobile-first
+* Responsividade Fluida
 * Baixa fricção
 * Formação de hábito
 * Motivação contínua
@@ -94,7 +94,7 @@ Inspirar-se em:
 * Elevate
 * Babbel
 * Calm
-* Notion Mobile
+* Notion
 
 Sem copiar elementos visuais.
 
@@ -109,7 +109,7 @@ Criar uma paleta baseada em:
 
 ## Tipografia
 
-* Mobile-first
+* Web Responsivo
 * Excelente legibilidade
 * Hierarquia clara
 * Compatível com WCAG 2.1 AA
@@ -130,7 +130,7 @@ Todos os protótipos devem seguir:
 
 # Navegação Principal
 
-Criar navegação inferior fixa com 5 abas:
+Criar navegação responsiva (sidebar para desktop, collapsible menu/bottom bar para mobile) com 5 abas:
 
 1. Início
 2. Trilhas

@@ -12,7 +12,7 @@ A autenticação é o primeiro fluxo crítico de produto. Sem ela nenhuma tela o
 de usuário pode existir. A sequência de início é:
 
 ```
-CHG-001 (monorepo) → CHG-003 (database) → CHG-004 (API auth) → CHG-012 (mobile auth + onboarding)
+CHG-001 (monorepo) → CHG-003 (database) → CHG-004 (API auth) → CHG-012 (web auth + onboarding)
 ```
 
 ---
@@ -24,7 +24,7 @@ FASE 1 — FUNDAÇÃO TÉCNICA (CHG-001 a CHG-003)
     ↓
 FASE 2 — BACKEND MVP (CHG-004 ⭐ AUTH → CHG-005 → CHG-006 → CHG-007 → CHG-008 → CHG-009 → CHG-010)
     ↓
-FASE 3 — DESIGN SYSTEM + MOBILE (CHG-011 → CHG-012 ⭐ AUTH → CHG-013 → CHG-014 → CHG-015 → CHG-016)
+FASE 3 — DESIGN SYSTEM + WEB CLIENT (CHG-011 → CHG-012 ⭐ AUTH → CHG-013 → CHG-014 → CHG-015 → CHG-016)
     ↓
 FASE 4 — WEB ADMIN MVP (CHG-017)
 ```
@@ -46,11 +46,11 @@ CHG-001 (monorepo)
     │                               └── CHG-010 (notifications) ← CHG-005
     │
     └── CHG-011 (design system)
-            ├── CHG-012 ⭐ (mobile: auth/onboarding) ← CHG-004/005/006
-            │       └── CHG-013 (mobile: home) ← CHG-006/007/008
-            │               ├── CHG-014 (mobile: lição) ← CHG-006/008
-            │               ├── CHG-015 (mobile: progresso) ← CHG-007/008/009
-            │               └── CHG-016 (mobile: perfil) ← CHG-005/010
+            ├── CHG-012 ⭐ (web: auth/onboarding) ← CHG-004/005/006
+            │       └── CHG-013 (web: home) ← CHG-006/007/008
+            │               ├── CHG-014 (web: lição) ← CHG-006/008
+            │               ├── CHG-015 (web: progresso) ← CHG-007/008/009
+            │               └── CHG-016 (web: perfil) ← CHG-005/010
             └── CHG-017 (web admin) ← CHG-004/006
 ```
 
@@ -88,20 +88,20 @@ CHG-001 (monorepo)
 
 ---
 
-### Fase 3 — Design System & Mobile V1
+### Fase 3 — Design System & Web Client V1
 
-> CHG-012 (auth/onboarding mobile) é implementado imediatamente após o Design System.
+> CHG-012 (auth/onboarding web) é implementado imediatamente após o Design System.
 
 | ID | Mudança | Tamanho | Complexidade | Risco | Proposta |
 |----|---------|---------|--------------|-------|----------|
-| CHG-011 | Design System & Componentes Mobile | Médio | Baixa/Média | Baixo | [proposal.md](changes/chg-011-design-system/proposal.md) |
-| CHG-012 ⭐ | **Mobile: Autenticação & Onboarding (INT-01 a INT-09)** | Médio | Média | Médio | [proposal.md](changes/chg-012-mobile-auth-onboarding/proposal.md) |
-| CHG-013 | Mobile: Home Dashboard & Navegação (INT-10, 11, 12) | Médio | Baixa/Média | Baixo | [proposal.md](changes/chg-013-mobile-home-dashboard/proposal.md) |
-| CHG-014 | Mobile: Execução de Lição & Resultado (INT-13, 14) | Médio | Média | Médio | [proposal.md](changes/chg-014-mobile-lesson-execution/proposal.md) |
-| CHG-015 | Mobile: Progresso, Streak, Revisões & Gamificação (INT-15 a 18) | Médio | Média | Baixo/Médio | [proposal.md](changes/chg-015-mobile-progress-reviews/proposal.md) |
-| CHG-016 | Mobile: Perfil, Configurações & Notificações (INT-19 a 21) | Médio | Baixa/Média | Baixo | [proposal.md](changes/chg-016-mobile-profile-settings/proposal.md) |
+| CHG-011 | Design System & Componentes Web | Médio | Baixa/Média | Baixo | [proposal.md](changes/chg-011-design-system/proposal.md) |
+| CHG-012 ⭐ | **Web Client: Autenticação & Onboarding (INT-01 a INT-09)** | Médio | Média | Médio | [proposal.md](changes/chg-012-web-auth-onboarding/proposal.md) |
+| CHG-013 | Web Client: Home Dashboard & Navegação (INT-10, 11, 12) | Médio | Baixa/Média | Baixo | [proposal.md](changes/chg-013-web-home-dashboard/proposal.md) |
+| CHG-014 | Web Client: Execução de Lição & Resultado (INT-13, 14) | Médio | Média | Médio | [proposal.md](changes/chg-014-web-lesson-execution/proposal.md) |
+| CHG-015 | Web Client: Progresso, Streak, Revisões & Gamificação (INT-15 a 18) | Médio | Média | Baixo/Médio | [proposal.md](changes/chg-015-web-progress-reviews/proposal.md) |
+| CHG-016 | Web Client: Perfil, Configurações & Notificações (INT-19 a 21) | Médio | Baixa/Média | Baixo | [proposal.md](changes/chg-016-web-profile-settings/proposal.md) |
 
-**Entregável:** App mobile completo com todos os fluxos do MVP.
+**Entregável:** Portal do aluno web responsivo completo com todos os fluxos do MVP.
 
 ---
 
@@ -120,7 +120,7 @@ CHG-001 (monorepo)
 > Projeto Stitch: **LinguoUp** (`projects/13167686388520823014`)
 > Design System: **Premium Playful Learning** | Cor primária: `#4648d4` | Fonte: Nunito Sans
 
-### Telas Mobile (390px)
+### Telas Web Client responsivas (Mobile 390px)
 
 | Screen ID (Stitch) | Label / Tema | Interfaces Spec | Mudança |
 |---|---|---|---|
@@ -192,7 +192,7 @@ CHG-001 (monorepo)
 
 ## Requisitos Funcionais por Mudança
 
-| RFN | Requisito | Backend | Mobile/Web |
+| RFN | Requisito | Backend | Web Client |
 |-----|-----------|---------|------------|
 | RFN-01 | Cadastro e Onboarding Personalizado | CHG-004 ⭐, CHG-005 | CHG-012 ⭐ |
 | RFN-02 | Avaliação de Nível Inicial | CHG-006 | CHG-012 |
@@ -222,7 +222,7 @@ Passa **sem erros** para todos os apps afetados pela mudança.
 ## Próximas Versões (fora do escopo V1)
 
 ### V2 — Growth Stage
-- Modo offline completo (MMKV + sincronização TanStack Query)
+- Persistência básica local de progresso
 - Motor de repetição espaçada como serviço dedicado
 - Serviço de notificações com fila (SQS/SNS + FCM)
 - Novos idiomas de aprendizado
