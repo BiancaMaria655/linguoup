@@ -17,9 +17,11 @@ echo -e "${YELLOW}==============================================${NC}"
 for port in 3000 3001 8081; do
     pid=$(lsof -t -i:$port 2>/dev/null)
     if [ ! -z "$pid" ]; then
-        echo -e "${YELLOW}Liberando porta $port (PID: $pid)...${NC}"
+        echo -e "${YELLOW}Liberando porta $port via lsof (PID: $pid)...${NC}"
         kill -9 $pid 2>/dev/null
     fi
+    # fallback: fuser (mais confiável no Linux)
+    fuser -k ${port}/tcp 2>/dev/null && echo -e "${YELLOW}Liberando porta $port via fuser...${NC}" || true
 done
 
 # 1. Verificar .env

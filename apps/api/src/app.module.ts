@@ -7,6 +7,9 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
 import { LoggerModule } from './common/logger/logger.module';
+import { UsersModule } from './users/users.module';
+import { LearningModule } from './learning/learning.module';
+import { GamificationModule } from './gamification/gamification.module';
 
 @Module({
   imports: [
@@ -21,6 +24,9 @@ import { LoggerModule } from './common/logger/logger.module';
     }]),
     AuthModule,
     LoggerModule,
+    UsersModule,
+    LearningModule,
+    GamificationModule,
   ],
   controllers: [AppController],
   providers: [
