@@ -1,0 +1,24 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic:
+        - generic: ¡Hola!
+        - generic: Bonjour
+        - generic: 你好
+        - generic: こんにちは
+        - generic: Ciao!
+      - img [ref=e6]
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - heading "Learn a language, not just vocabulary" [level=1] [ref=e12]:
+          - text: Learn a language,
+          - text: not just vocabulary
+        - paragraph [ref=e13]: Lingo builds real fluency through short, adaptive lessons that fit into your day.
+      - generic [ref=e18]: Join 50k+ learners
+      - generic [ref=e19]:
+        - link "Get started — it's free" [ref=e20] [cursor=pointer]:
+          - /url: /register
+        - link "Already have an account? Log in" [ref=e21] [cursor=pointer]:
+          - /url: /login
+  - button "Open Next.js Dev Tools" [ref=e27] [cursor=pointer]:
+    - img [ref=e28]
