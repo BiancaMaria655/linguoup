@@ -4,7 +4,8 @@
   "compilerOptions": {
     "module": "ESNext",
     "outDir": "dist",
-    "rootDir": "."
+    "rootDir": ".",
+    "jsx": "react-native"
   },
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules", "dist"]
