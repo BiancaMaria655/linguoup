@@ -5,6 +5,7 @@ import { LessonRepository } from '../repositories/lesson.repository';
 import { ProgressRepository } from '../repositories/progress.repository';
 import { LearningDomainService } from '../services/learning-domain.service';
 import { AchievementUnlockService, AchievementUnlocked } from '../../gamification/services/achievement-unlock.service';
+import { CreateSpacedReviewItemsUseCase, LessonItem } from './create-spaced-review-items.use-case';
 
 const BASE_XP = 50;
 
@@ -36,6 +37,7 @@ export class CompleteLessonUseCase {
     private readonly learningDomainService: LearningDomainService,
     private readonly structuredLogger: StructuredLogger,
     private readonly achievementUnlockService: AchievementUnlockService,
+    private readonly createSpacedReviewItemsUseCase: CreateSpacedReviewItemsUseCase,
   ) {
     this.structuredLogger.setService('complete-lesson-use-case');
   }
@@ -95,6 +97,16 @@ export class CompleteLessonUseCase {
           },
         });
 
+        // 4. Create spaced review items (atomic with lesson completion)
+        const items = this.extractReviewItems(lesson.content);
+        await this.createSpacedReviewItemsUseCase.execute(tx, {
+          userId,
+          tenantId,
+          lessonId,
+          traceId: command.traceId,
+          items,
+        });
+
         return {
           xpEarned,
           newTotalXP: updatedProgress.totalXP,
@@ -142,5 +154,25 @@ export class CompleteLessonUseCase {
       ...txResult,
       newAchievements,
     };
+  }
+
+  /**
+   * Extracts vocabulary and grammar items from lesson content slides.
+   * Only 'vocab' and 'grammar' slide types are extracted.
+   */
+  private extractReviewItems(content: unknown): LessonItem[] {
+    if (!content || typeof content !== 'object') return [];
+    const c = content as Record<string, unknown>;
+    const slides = Array.isArray(c['slides']) ? (c['slides'] as Record<string, unknown>[]) : [];
+
+    const items: LessonItem[] = [];
+    for (const slide of slides) {
+      if (slide['type'] === 'vocab' && typeof slide['term'] === 'string') {
+        items.push({ content: slide['term'], type: 'vocabulary' });
+      } else if (slide['type'] === 'grammar' && typeof slide['term'] === 'string') {
+        items.push({ content: slide['term'], type: 'grammar' });
+      }
+    }
+    return items;
   }
 }

@@ -10,6 +10,8 @@ import { LoggerModule } from './common/logger/logger.module';
 import { UsersModule } from './users/users.module';
 import { LearningModule } from './learning/learning.module';
 import { GamificationModule } from './gamification/gamification.module';
+import { NotificationsModule } from './notifications/notifications.module';
+
 
 @Module({
   imports: [
@@ -27,6 +29,7 @@ import { GamificationModule } from './gamification/gamification.module';
     UsersModule,
     LearningModule,
     GamificationModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [

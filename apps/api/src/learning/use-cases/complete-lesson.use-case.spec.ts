@@ -7,6 +7,7 @@ import { ProgressRepository } from '../repositories/progress.repository';
 import { LearningDomainService } from '../services/learning-domain.service';
 import { StructuredLogger } from '../../common/logger/structured-logger.service';
 import { AchievementUnlockService } from '../../gamification/services/achievement-unlock.service';
+import { CreateSpacedReviewItemsUseCase } from './create-spaced-review-items.use-case';
 
 const mockLesson = {
   id: 'lesson-1',
@@ -70,6 +71,10 @@ describe('CompleteLessonUseCase', () => {
       evaluate: jest.fn().mockResolvedValue([mockNewAchievement]),
     };
 
+    const mockCreateSpacedReviewItemsUseCase = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CompleteLessonUseCase,
@@ -79,6 +84,7 @@ describe('CompleteLessonUseCase', () => {
         LearningDomainService,
         { provide: StructuredLogger, useValue: { setService: jest.fn(), log: jest.fn(), error: jest.fn() } },
         { provide: AchievementUnlockService, useValue: mockAchievementUnlockService },
+        { provide: CreateSpacedReviewItemsUseCase, useValue: mockCreateSpacedReviewItemsUseCase },
       ],
     }).compile();
 

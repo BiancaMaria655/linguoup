@@ -14,6 +14,16 @@ enum Role {
   SUPER_ADMIN
 }
 
+enum NotificationType {
+  REMINDER
+  SYSTEM
+}
+
+enum NotificationChannel {
+  PUSH
+  EMAIL
+}
+
 model User {
   id           String            @id @default(uuid())
   tenant_id    String
@@ -21,6 +31,7 @@ model User {
   name         String
   passwordHash String
   role         Role              @default(USER)
+  fcmToken     String?
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
   preferences  UserPreferences?
@@ -31,17 +42,20 @@ model User {
   notifications Notification[]
 }
 
+
 model UserPreferences {
-  userId              String   @id
-  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  targetLanguage      String
-  learningGoal        String
-  dailyGoalMinutes    Int
-  dailyGoalLessons    Int      @default(1)
-  preferredStudyTime  String?
-  onboardingCompleted Boolean  @default(false)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  userId                String   @id
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetLanguage        String
+  learningGoal          String
+  dailyGoalMinutes      Int
+  dailyGoalLessons      Int      @default(1)
+  preferredStudyTime    String?
+  studyReminderTime     String?
+  studyReminderEmail    Boolean  @default(false)
+  onboardingCompleted   Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
 
 model Lesson {
@@ -111,19 +125,31 @@ model SpacedReviewItem {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   lessonId     String
   lesson       Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  itemContent  String
+  itemType     String   // "vocabulary" | "grammar"
   nextReviewAt DateTime
   easeFactor   Float
   interval     Int
   repetitions  Int
+  quality      Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId, tenant_id, nextReviewAt])
+  @@unique([userId, lessonId, itemContent])
 }
 
 model Notification {
-  id        String    @id @default(uuid())
+  id        String              @id @default(uuid())
   tenant_id String
   userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      String
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  channel   NotificationChannel
   message   String
   readAt    DateTime?
-  createdAt DateTime  @default(now())
+  sentAt    DateTime
+  createdAt DateTime            @default(now())
+
+  @@index([userId, tenant_id, createdAt])
 }
