@@ -1,4 +1,4 @@
-﻿// Web Badge components â€” used internally by other web components
+// Web Badge components — used internally by other web components
 
 export interface BadgeProps {
   label: string;
@@ -37,7 +37,7 @@ export function Badge({ label, variant = "custom", color, background }: BadgePro
 export function StreakIcon({ count }: { count: number }) {
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 2, fontWeight: 700 }}>
-      ðŸ”¥ {count}
+      🔥 {count}
     </span>
   );
 }

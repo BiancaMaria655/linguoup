@@ -27,7 +27,7 @@ export function Button({
       style={{ width: fullWidth ? "100%" : undefined, ...style }}
       {...rest}
     >
-      {loading ? "Carregandoâ€¦" : children}
+      {loading ? "Carregando…" : children}
     </button>
   );
 }

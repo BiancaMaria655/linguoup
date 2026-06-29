@@ -1,4 +1,4 @@
-﻿// Web LessonCard component
+// Web LessonCard component
 
 import Link from "next/link";
 import { Badge } from "./Badge";
@@ -17,8 +17,8 @@ export interface LessonCardProps {
 
 const LEVEL_LABEL: Record<LessonLevel, string> = {
   beginner: "Iniciante",
-  intermediate: "IntermediÃ¡rio",
-  advanced: "AvanÃ§ado",
+  intermediate: "Intermediário",
+  advanced: "Avançado",
 };
 
 const LEVEL_VARIANT: Record<LessonLevel, "xp" | "level" | "streak"> = {
@@ -64,7 +64,7 @@ export function LessonCard({
           flexShrink: 0,
         }}
       >
-        {locked ? "ðŸ”’" : completed ? "âœ…" : "ðŸ“–"}
+        {locked ? "🔒" : completed ? "✅" : "📖"}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{title}</div>

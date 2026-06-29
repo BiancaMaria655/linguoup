@@ -172,17 +172,30 @@ export default function OnboardingPage() {
 
         {step === "language" && (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            {LANGUAGES.map((l) => (
-              <button
-                key={l.value}
-                onClick={() => update("targetLanguage", l.value)}
-                className={state.targetLanguage === l.value ? "option-selected" : "option-card"}
-                style={{ padding: "16px", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, cursor: "pointer", border: "none", borderRadius: "var(--radius-md)" }}
-              >
-                <span style={{ fontSize: "2rem" }}>{l.flag}</span>
-                <span style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--text-primary)" }}>{l.label}</span>
-              </button>
-            ))}
+            {LANGUAGES.map((l) => {
+              const selected = state.targetLanguage === l.value;
+              return (
+                <button
+                  key={l.value}
+                  onClick={() => update("targetLanguage", l.value)}
+                  style={{
+                    padding: "16px",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 8,
+                    cursor: "pointer",
+                    borderRadius: "var(--radius-md)",
+                    border: `1px solid ${selected ? "rgba(139,92,246,0.6)" : "var(--surface-border)"}`,
+                    background: selected ? "rgba(139,92,246,0.12)" : "var(--surface-1)",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  <span style={{ fontSize: "2rem" }}>{l.flag}</span>
+                  <span style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--text-primary)" }}>{l.label}</span>
+                </button>
+              );
+            })}
           </div>
         )}
 

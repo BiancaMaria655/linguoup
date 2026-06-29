@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 
@@ -93,17 +93,17 @@ export default function WelcomePage() {
           <p style={{ fontSize: "1.125rem", color: "var(--text-secondary)", lineHeight: 1.6 }}>
             Aprenda idiomas em{" "}
             <strong style={{ color: "var(--text-primary)" }}>3 a 5 minutos</strong>{" "}
-            por dia. MicroliÃ§Ãµes, gamificaÃ§Ã£o e formaÃ§Ã£o de hÃ¡bitos.
+            por dia. Microlições, gamificação e formação de hábitos.
           </p>
         </div>
 
         {/* Value props */}
         <div style={{ display: "flex", flexDirection: "column", gap: 12, width: "100%" }}>
           {[
-            { icon: "âš¡", text: "MicroliÃ§Ãµes de 3 a 5 minutos" },
-            { icon: "ðŸŽ¯", text: "Metas diÃ¡rias personalizadas" },
-            { icon: "ðŸ”¥", text: "Streak e gamificaÃ§Ã£o para criar hÃ¡bitos" },
-            { icon: "ðŸ§ ", text: "RepetiÃ§Ã£o espaÃ§ada inteligente" },
+            { icon: "⚡", text: "Microlições de 3 a 5 minutos" },
+            { icon: "🎯", text: "Metas diárias personalizadas" },
+            { icon: "🔥", text: "Streak e gamificação para criar hábitos" },
+            { icon: "🧠", text: "Repetição espaçada inteligente" },
           ].map(({ icon, text }) => (
             <div
               key={text}
@@ -126,22 +126,22 @@ export default function WelcomePage() {
         {/* CTAs */}
         <div style={{ display: "flex", flexDirection: "column", gap: 12, width: "100%" }}>
           <Link href="/register" className="btn-primary" style={{ width: "100%" }}>
-            ComeÃ§ar agora â€” Ã© grÃ¡tis
+            Começar agora — é grátis
           </Link>
           <Link href="/login" className="btn-secondary" style={{ width: "100%" }}>
-            JÃ¡ tenho conta â€” Entrar
+            Já tenho conta — Entrar
           </Link>
         </div>
 
         {/* Footer links */}
         <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-          Ao continuar, vocÃª concorda com os{" "}
+          Ao continuar, você concorda com os{" "}
           <a href="#" style={{ color: "var(--brand-400)", textDecoration: "none" }}>
             Termos de Uso
           </a>{" "}
           e a{" "}
           <a href="#" style={{ color: "var(--brand-400)", textDecoration: "none" }}>
-            PolÃ­tica de Privacidade
+            Política de Privacidade
           </a>
           .
         </p>

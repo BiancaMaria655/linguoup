@@ -1,4 +1,4 @@
-﻿// Web AchievementCard component
+// Web AchievementCard component
 
 export interface AchievementCardProps {
   title: string;
@@ -31,7 +31,7 @@ export function AchievementCard({
         opacity: unlocked ? 1 : 0.4,
         width: 110,
       }}
-      aria-label={`${title}${unlocked ? "" : " â€” bloqueado"}`}
+      aria-label={`${title}${unlocked ? "" : " — bloqueado"}`}
     >
       <div
         style={{

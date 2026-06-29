@@ -109,7 +109,7 @@ async function main() {
       tenant_id: tenantId,
       email: 'student@linguoup.local',
       name: 'John Doe',
-      passwordHash: '$2b$10$EpYkE.UvWcQfE5Yp4r9s.OuKq/qYJgZ7yZ2P3D2R9kO9b8vTaPnvB', // placeholder
+      passwordHash: '$argon2id$v=19$m=65536,t=3,p=4$DiX5e3E9ukMhWMvK+7gm/w$PGjA9Qt4w1Rq5bX3N0cDMlG8Vi0ZUvNz9gAMbcUOP5o', // student123 (Argon2id)
       role: Role.USER,
       preferences: {
         create: {
@@ -129,6 +129,18 @@ async function main() {
           lastActivityDate: new Date(),
         },
       },
+    },
+  });
+
+  // 3b. Create Admin user
+  console.log('Seeding admin user...');
+  await prisma.user.create({
+    data: {
+      tenant_id: tenantId,
+      email: 'admin@linguoup.com',
+      name: 'Admin User',
+      passwordHash: '$argon2id$v=19$m=65536,t=3,p=4$qlrDX2JM3Sq8WHV8L4yOYw$ByUk2w+DMrrVbV1mJxAjvwzL1s8hhhkTDRMZ+j+tK14', // admin123 (Argon2id)
+      role: Role.ADMIN,
     },
   });
 
