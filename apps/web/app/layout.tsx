@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "LinguoUp — Painel Administrativo",
+  title: "LinguoUp — Aprenda idiomas em minutos por dia",
   description:
-    "Painel de administração da plataforma de aprendizado de idiomas LinguoUp.",
+    "Plataforma de aprendizado de idiomas com microlições, gamificação e formação de hábitos.",
 };
 
 export default function RootLayout({
@@ -14,7 +15,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className="h-full">
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
