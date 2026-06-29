@@ -31,7 +31,7 @@ const LANGUAGE_NAMES: Record<string, string> = {
   en: "Inglês", es: "Espanhol", fr: "Francês", de: "Alemão", it: "Italiano", jp: "Japonês",
 };
 const GOAL_NAMES: Record<string, string> = {
-  work: "Trabalho", travel: "Viagem", studies: "Estudos", hobby: "Hobby", other: "Outro",
+  CAREER: "Trabalho", TRAVEL: "Viagem", EXAM: "Estudos", CULTURE: "Cultura",
 };
 
 export default function ProfilePage() {

@@ -1,4 +1,4 @@
-﻿// Web Button component
+// Web Button component
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "ghost";
@@ -9,6 +9,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 export function Button({
   variant = "primary",
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   size = "md",
   loading,
   fullWidth,

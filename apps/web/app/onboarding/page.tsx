@@ -15,11 +15,10 @@ interface OnboardingState {
 }
 
 const GOALS = [
-  { value: "work", label: "Trabalho", icon: "💼", description: "Reuniões e crescimento profissional" },
-  { value: "travel", label: "Viagem", icon: "✈️", description: "Comunicação em outros países" },
-  { value: "studies", label: "Estudos", icon: "🎓", description: "Intercâmbio e certificações" },
-  { value: "hobby", label: "Hobby", icon: "🎨", description: "Aprender por curiosidade e prazer" },
-  { value: "other", label: "Outro", icon: "🌟", description: "Razão pessoal" },
+  { value: "CAREER", label: "Trabalho", icon: "💼", description: "Reuniões e crescimento profissional" },
+  { value: "TRAVEL", label: "Viagem", icon: "✈️", description: "Comunicação em outros países" },
+  { value: "EXAM", label: "Estudos", icon: "🎓", description: "Intercâmbio e certificações" },
+  { value: "CULTURE", label: "Hobby/Cultura", icon: "🎨", description: "Aprender por curiosidade e prazer" },
 ];
 
 const LANGUAGES = [
