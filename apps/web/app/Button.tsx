@@ -1,0 +1,33 @@
+// Web Button component
+
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: "primary" | "secondary" | "ghost";
+  size?: "sm" | "md" | "lg";
+  loading?: boolean;
+  fullWidth?: boolean;
+}
+
+export function Button({
+  variant = "primary",
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  size = "md",
+  loading,
+  fullWidth,
+  children,
+  disabled,
+  className,
+  style,
+  ...rest
+}: ButtonProps) {
+  const cls = variant === "primary" ? "btn-primary" : "btn-secondary";
+  return (
+    <button
+      className={`${cls} ${className ?? ""}`}
+      disabled={disabled || loading}
+      style={{ width: fullWidth ? "100%" : undefined, ...style }}
+      {...rest}
+    >
+      {loading ? "Carregando…" : children}
+    </button>
+  );
+}
