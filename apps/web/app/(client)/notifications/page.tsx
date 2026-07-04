@@ -1,17 +1,9 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiFetch } from "@/lib/api";
-import { useAuthStore } from "@/store/authStore";
+import { useNotificationsScreen } from "@/app/hooks/useNotificationsScreen";
+import type { Notification } from "@/app/hooks/useNotificationsScreen";
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  read: boolean;
-  createdAt: string;
-  type: "achievement" | "streak" | "reminder" | "system";
-}
+// ── Constants ──────────────────────────────────────────────────────────────
 
 const TYPE_ICONS: Record<Notification["type"], string> = {
   achievement: "🏆",
@@ -20,35 +12,17 @@ const TYPE_ICONS: Record<Notification["type"], string> = {
   system: "📢",
 };
 
+// ── Component ──────────────────────────────────────────────────────────────
+
 export default function NotificationsPage() {
-  const { accessToken } = useAuthStore();
-  const queryClient = useQueryClient();
-
-  const { data: notifications = [], isLoading } = useQuery<Notification[]>({
-    queryKey: ["notifications"],
-    queryFn: () => apiFetch("/notifications", { token: accessToken ?? undefined }),
-    enabled: !!accessToken,
-  });
-
-  const markReadMutation = useMutation({
-    mutationFn: (id: string) =>
-      apiFetch(`/notifications/${id}/read`, {
-        method: "PATCH",
-        token: accessToken ?? undefined,
-      }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
-  });
-
-  const markAllReadMutation = useMutation({
-    mutationFn: () =>
-      apiFetch("/notifications/read-all", {
-        method: "PATCH",
-        token: accessToken ?? undefined,
-      }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
-  });
-
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const {
+    notifications,
+    unreadCount,
+    isLoading,
+    markRead,
+    markAllRead,
+    isMarkingAllRead,
+  } = useNotificationsScreen();
 
   return (
     <div style={{ maxWidth: 600, margin: "0 auto", padding: "32px 24px" }}>
@@ -79,8 +53,8 @@ export default function NotificationsPage() {
         </div>
         {unreadCount > 0 && (
           <button
-            onClick={() => markAllReadMutation.mutate()}
-            disabled={markAllReadMutation.isPending}
+            onClick={markAllRead}
+            disabled={isMarkingAllRead}
             style={{ background: "none", border: "none", color: "var(--brand-400)", cursor: "pointer", fontSize: "0.85rem", fontFamily: "inherit" }}
           >
             Marcar todas como lidas
@@ -101,7 +75,7 @@ export default function NotificationsPage() {
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {notifications.map((n) => (
+          {notifications.map((n: Notification) => (
             <div
               key={n.id}
               style={{
@@ -138,7 +112,7 @@ export default function NotificationsPage() {
               </div>
               {!n.read && (
                 <button
-                  onClick={() => markReadMutation.mutate(n.id)}
+                  onClick={() => markRead(n.id)}
                   style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: "0.75rem", fontFamily: "inherit", flexShrink: 0 }}
                 >
                   Lida

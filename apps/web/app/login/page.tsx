@@ -1,54 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { apiFetch } from "@/lib/api";
-import { useAuthStore } from "@/store/authStore";
+import { useLoginScreen } from "@/app/hooks/useLoginScreen";
 
 export default function LoginPage() {
   const router = useRouter();
-  const setAuth = useAuthStore((s) => s.setAuth);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    error,
+    loading,
+    handleSubmit,
+    isAlreadyAuthenticated,
+    role,
+  } = useLoginScreen();
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!email || !password) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const loginData = await apiFetch<{ accessToken: string }>("/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-      });
-      const profile = await apiFetch<{
-        id: string; name: string; email: string; role: "USER" | "ADMIN" | "SUPER_ADMIN";
-        preferences: { onboardingCompleted: boolean; targetLanguage?: string; learningGoal?: string; dailyGoalMinutes?: number } | null;
-      }>("/users/me", { token: loginData.accessToken });
-      setAuth(loginData.accessToken, {
-        id: profile.id,
-        name: profile.name,
-        email: profile.email,
-        role: profile.role,
-        onboardingCompleted: profile.preferences?.onboardingCompleted ?? false,
-        targetLanguage: profile.preferences?.targetLanguage,
-        learningGoal: profile.preferences?.learningGoal,
-        dailyGoalMinutes: profile.preferences?.dailyGoalMinutes,
-      });
-      if (!profile.preferences?.onboardingCompleted) {
-        router.push("/onboarding");
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAlreadyAuthenticated) {
+      if (role === "ADMIN" || role === "SUPER_ADMIN") {
+        router.replace("/admin/dashboard");
       } else {
-        router.push("/dashboard");
+        router.replace("/dashboard");
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao realizar login.");
-    } finally {
-      setLoading(false);
     }
-  }
+  }, [isAlreadyAuthenticated, role, router]);
 
   return (
     <div
@@ -85,9 +65,9 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div>
-            <label htmlFor="email" style={labelStyle}>E-mail</label>
+            <label htmlFor="login-email" style={labelStyle}>E-mail</label>
             <input
-              id="email"
+              id="login-email"
               type="email"
               autoComplete="email"
               value={email}
@@ -99,9 +79,9 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label htmlFor="password" style={labelStyle}>Senha</label>
+            <label htmlFor="login-password" style={labelStyle}>Senha</label>
             <input
-              id="password"
+              id="login-password"
               type="password"
               autoComplete="current-password"
               value={password}

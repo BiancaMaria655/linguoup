@@ -25,41 +25,40 @@ enum NotificationChannel {
 }
 
 model User {
-  id           String            @id @default(uuid())
-  tenant_id    String
-  email        String            @unique
-  name         String
-  passwordHash String
-  role         Role              @default(USER)
-  fcmToken     String?
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  preferences  UserPreferences?
-  completions  LessonCompletion[]
-  progress     UserProgress?
-  achievements UserAchievement[]
+  id            String             @id @default(uuid())
+  tenant_id     String
+  email         String             @unique
+  name          String
+  passwordHash  String
+  role          Role               @default(USER)
+  fcmToken      String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  preferences   UserPreferences?
+  completions   LessonCompletion[]
+  progress      UserProgress?
+  achievements  UserAchievement[]
   spacedReviews SpacedReviewItem[]
   notifications Notification[]
 }
 
-
 model UserPreferences {
-  userId                String   @id
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  targetLanguage        String
-  learningGoal          String
-  dailyGoalMinutes      Int
-  dailyGoalLessons      Int      @default(1)
-  preferredStudyTime    String?
-  studyReminderTime     String?
-  studyReminderEmail    Boolean  @default(false)
-  onboardingCompleted   Boolean  @default(false)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  userId              String   @id
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetLanguage      String
+  learningGoal        String
+  dailyGoalMinutes    Int
+  dailyGoalLessons    Int      @default(1)
+  preferredStudyTime  String?
+  studyReminderTime   String?
+  studyReminderEmail  Boolean  @default(false)
+  onboardingCompleted Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 model Lesson {
-  id              String            @id @default(uuid())
+  id              String             @id @default(uuid())
   tenant_id       String
   title           String
   description     String
@@ -67,7 +66,8 @@ model Lesson {
   theme           String
   durationMinutes Int
   content         Json
-  createdAt       DateTime          @default(now())
+  isActive        Boolean            @default(true)
+  createdAt       DateTime           @default(now())
   completions     LessonCompletion[]
   spacedReviews   SpacedReviewItem[]
 }
@@ -126,7 +126,7 @@ model SpacedReviewItem {
   lessonId     String
   lesson       Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   itemContent  String
-  itemType     String   // "vocabulary" | "grammar"
+  itemType     String // "vocabulary" | "grammar"
   nextReviewAt DateTime
   easeFactor   Float
   interval     Int
@@ -135,8 +135,8 @@ model SpacedReviewItem {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  @@index([userId, tenant_id, nextReviewAt])
   @@unique([userId, lessonId, itemContent])
+  @@index([userId, tenant_id, nextReviewAt])
 }
 
 model Notification {

@@ -1,28 +1,13 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { apiFetch } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
-
-interface HomeData {
-  streak: number;
-  xp: number;
-  level: number;
-  dailyGoalMinutes: number;
-  todayMinutes: number;
-  nextLesson: { id: string; title: string; topic: string; durationMinutes: number } | null;
-  pendingReviews: number;
-}
+import { useHomeData } from "@/app/hooks/useHomeData";
 
 export default function DashboardPage() {
-  const { accessToken, user } = useAuthStore();
+  const { user } = useAuthStore();
 
-  const { data, isLoading } = useQuery<HomeData>({
-    queryKey: ["home"],
-    queryFn: () => apiFetch("/users/me/home", { token: accessToken ?? undefined }),
-    enabled: !!accessToken,
-  });
+  const { data, isLoading } = useHomeData();
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";

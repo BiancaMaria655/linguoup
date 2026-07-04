@@ -1,8 +1,24 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/authStore";
 
 export default function WelcomePage() {
+  const router = useRouter();
+  const { accessToken, user } = useAuthStore();
+
+  useEffect(() => {
+    if (accessToken && user) {
+      if (user.onboardingCompleted) {
+        router.replace("/dashboard");
+      } else {
+        router.replace("/onboarding");
+      }
+    }
+  }, [accessToken, user, router]);
+
   return (
     <div
       style={{

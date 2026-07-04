@@ -8,6 +8,7 @@ import { RedisService } from '../src/database/redis.service';
 import { Role } from '@linguoup/database';
 import cookieParser from 'cookie-parser';
 import * as argon2 from 'argon2';
+import * as crypto from 'crypto';
 
 describe('ReviewsController (e2e)', () => {
   let app: INestApplication<App>;
@@ -146,7 +147,7 @@ describe('ReviewsController (e2e)', () => {
         return result.length;
       }),
       create: jest.fn().mockImplementation((args: any) => {
-        const item = { id: `review-${Date.now()}-${Math.random()}`, ...args.data, createdAt: new Date(), updatedAt: new Date() };
+        const item = { id: crypto.randomUUID(), ...args.data, createdAt: new Date(), updatedAt: new Date() };
         mockSpacedReviewItems.push(item);
         return item;
       }),
@@ -163,7 +164,7 @@ describe('ReviewsController (e2e)', () => {
           Object.assign(existing, update, { updatedAt: new Date() });
           return existing;
         }
-        const item = { id: `review-${Date.now()}-${Math.random()}`, ...create, createdAt: new Date(), updatedAt: new Date() };
+        const item = { id: crypto.randomUUID(), ...create, createdAt: new Date(), updatedAt: new Date() };
         mockSpacedReviewItems.push(item);
         return item;
       }),

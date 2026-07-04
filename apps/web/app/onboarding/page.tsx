@@ -1,18 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { apiFetch } from "@/lib/api";
-import { useAuthStore } from "@/store/authStore";
-
-type Step = "goal" | "language" | "availability" | "plan";
-
-interface OnboardingState {
-  learningGoal: string;
-  targetLanguage: string;
-  dailyMinutes: number;
-  preferredHour: number;
-}
+import { useOnboardingScreen } from "@/app/hooks/useOnboardingScreen";
 
 const GOALS = [
   { value: "CAREER", label: "Trabalho", icon: "💼", description: "Reuniões e crescimento profissional" },
@@ -39,62 +29,27 @@ const DAILY_OPTIONS = [
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { accessToken, updateUser } = useAuthStore();
-  const [step, setStep] = useState<Step>("goal");
-  const [state, setState] = useState<OnboardingState>({
-    learningGoal: "",
-    targetLanguage: "",
-    dailyMinutes: 10,
-    preferredHour: 8,
-  });
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    step,
+    state,
+    update,
+    next,
+    back,
+    handleCreatePlan,
+    currentIndex,
+    progress,
+    steps,
+    saving,
+    error,
+    isAlreadyCompleted,
+  } = useOnboardingScreen();
 
-  const steps: Step[] = ["goal", "language", "availability", "plan"];
-  const currentIndex = steps.indexOf(step);
-  const progress = ((currentIndex + 1) / steps.length) * 100;
-
-  function update<K extends keyof OnboardingState>(key: K, value: OnboardingState[K]) {
-    setState((s) => ({ ...s, [key]: value }));
-  }
-
-  function next() {
-    const next = steps[currentIndex + 1];
-    if (next) setStep(next);
-  }
-
-  function back() {
-    const prev = steps[currentIndex - 1];
-    if (prev) setStep(prev);
-  }
-
-  async function handleCreatePlan() {
-    if (!accessToken) return;
-    setSaving(true);
-    setError(null);
-    try {
-      await apiFetch("/users/me/onboarding", {
-        method: "POST",
-        token: accessToken,
-        body: JSON.stringify({
-          learningGoal: state.learningGoal,
-          targetLanguage: state.targetLanguage,
-          dailyGoalMinutes: state.dailyMinutes,
-          preferredStudyHour: state.preferredHour,
-        }),
-      });
-      updateUser({
-        onboardingCompleted: true,
-        learningGoal: state.learningGoal,
-        targetLanguage: state.targetLanguage,
-        dailyGoalMinutes: state.dailyMinutes,
-      });
-      router.push("/assessment");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao salvar plano.");
-      setSaving(false);
+  // Redirect if onboarding already completed
+  useEffect(() => {
+    if (isAlreadyCompleted) {
+      router.replace("/dashboard");
     }
-  }
+  }, [isAlreadyCompleted, router]);
 
   return (
     <div
@@ -120,6 +75,11 @@ export default function OnboardingPage() {
           background: "var(--surface-2)",
           zIndex: 10,
         }}
+        role="progressbar"
+        aria-valuenow={currentIndex + 1}
+        aria-valuemin={1}
+        aria-valuemax={steps.length}
+        aria-label={`Passo ${currentIndex + 1} de ${steps.length}`}
       >
         <div
           style={{
@@ -178,6 +138,7 @@ export default function OnboardingPage() {
                 <button
                   key={l.value}
                   onClick={() => update("targetLanguage", l.value)}
+                  aria-pressed={selected}
                   style={{
                     padding: "16px",
                     display: "flex",
@@ -205,6 +166,7 @@ export default function OnboardingPage() {
               <button
                 key={o.value}
                 onClick={() => update("dailyMinutes", o.value)}
+                aria-pressed={state.dailyMinutes === o.value}
                 style={{
                   padding: "16px",
                   borderRadius: "var(--radius-md)",
@@ -229,10 +191,14 @@ export default function OnboardingPage() {
               </button>
             ))}
             <div style={{ marginTop: 8 }}>
-              <label style={{ fontSize: "0.875rem", color: "var(--text-secondary)", marginBottom: 8, display: "block" }}>
+              <label
+                htmlFor="onboarding-hour"
+                style={{ fontSize: "0.875rem", color: "var(--text-secondary)", marginBottom: 8, display: "block" }}
+              >
                 Horário preferencial de estudo: {state.preferredHour}h
               </label>
               <input
+                id="onboarding-hour"
                 type="range"
                 min={5}
                 max={23}
@@ -256,7 +222,7 @@ export default function OnboardingPage() {
               <PlanItem icon="⏱" label="Meta diária" value={`${state.dailyMinutes} minutos/dia`} />
               <PlanItem icon="🕐" label="Horário" value={`${state.preferredHour}h`} />
             </div>
-            {error && <div className="feedback-incorrect">{error}</div>}
+            {error && <div className="feedback-incorrect" role="alert">{error}</div>}
           </div>
         )}
 
@@ -311,6 +277,8 @@ function OptionCard({
   return (
     <button
       onClick={onSelect}
+      role="radio"
+      aria-checked={selected}
       style={{
         padding: "16px",
         borderRadius: "var(--radius-md)",
@@ -324,8 +292,6 @@ function OptionCard({
         textAlign: "left",
         width: "100%",
       }}
-      role="radio"
-      aria-checked={selected}
     >
       <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>{icon}</span>
       <div>

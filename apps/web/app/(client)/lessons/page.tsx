@@ -1,22 +1,8 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
-import { apiFetch } from "@/lib/api";
-import { useAuthStore } from "@/store/authStore";
-
-type Level = "all" | "beginner" | "intermediate" | "advanced";
-
-interface Trail {
-  id: string;
-  title: string;
-  description: string;
-  level: "beginner" | "intermediate" | "advanced";
-  totalLessons: number;
-  completedLessons: number;
-  icon: string;
-}
+import { useLessons, type Level } from "@/app/hooks/useLessons";
 
 const LEVEL_LABELS: Record<string, string> = {
   all: "Todos",
@@ -38,17 +24,9 @@ const LEVEL_TEXT_COLORS: Record<string, string> = {
 };
 
 export default function LessonsPage() {
-  const { accessToken } = useAuthStore();
   const [filter, setFilter] = useState<Level>("all");
 
-  const { data: trails = [], isLoading } = useQuery<Trail[]>({
-    queryKey: ["trails", filter],
-    queryFn: () =>
-      apiFetch(`/lessons/trails${filter !== "all" ? `?level=${filter}` : ""}`, {
-        token: accessToken ?? undefined,
-      }),
-    enabled: !!accessToken,
-  });
+  const { trails, isLoading } = useLessons(filter);
 
   return (
     <div style={{ maxWidth: 700, margin: "0 auto", padding: "32px 24px" }}>

@@ -1,117 +1,26 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { apiFetch } from "@/lib/api";
-import { useAuthStore } from "@/store/authStore";
-
-interface Question {
-  id: string;
-  text: string;
-  options: string[];
-  correctIndex: number;
-}
-
-// Sample assessment questions (in production these come from the API)
-const SAMPLE_QUESTIONS: Question[] = [
-  {
-    id: "q1",
-    text: "What is the English translation of 'Obrigado'?",
-    options: ["Please", "Thank you", "Sorry", "Hello"],
-    correctIndex: 1,
-  },
-  {
-    id: "q2",
-    text: "Choose the correct sentence:",
-    options: [
-      "She don't like coffee.",
-      "She doesn't likes coffee.",
-      "She doesn't like coffee.",
-      "She not like coffee.",
-    ],
-    correctIndex: 2,
-  },
-  {
-    id: "q3",
-    text: "What does 'Bom dia' mean in English?",
-    options: ["Good afternoon", "Good evening", "Good night", "Good morning"],
-    correctIndex: 3,
-  },
-  {
-    id: "q4",
-    text: "Fill in the blank: 'I ___ to the store yesterday.'",
-    options: ["go", "gone", "went", "going"],
-    correctIndex: 2,
-  },
-  {
-    id: "q5",
-    text: "Which word means 'rápido' in English?",
-    options: ["Slow", "Fast", "Big", "Small"],
-    correctIndex: 1,
-  },
-];
+import { useAssessmentScreen } from "@/app/hooks/useAssessmentScreen";
 
 export default function AssessmentPage() {
-  const router = useRouter();
-  const { accessToken } = useAuthStore();
-  const [current, setCurrent] = useState(0);
-  const [answers, setAnswers] = useState<number[]>([]);
-  const [selected, setSelected] = useState<number | null>(null);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [done, setDone] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  const question = SAMPLE_QUESTIONS[current];
-  const isCorrect = selected === question?.correctIndex;
-  const score = answers.filter((a, i) => a === SAMPLE_QUESTIONS[i]?.correctIndex).length;
-
-  function handleSelect(idx: number) {
-    if (showFeedback) return;
-    setSelected(idx);
-    setShowFeedback(true);
-  }
-
-  function handleNext() {
-    if (selected === null) return;
-    const newAnswers = [...answers, selected];
-    setAnswers(newAnswers);
-
-    if (current + 1 >= SAMPLE_QUESTIONS.length) {
-      setDone(true);
-      submitAssessment(newAnswers);
-    } else {
-      setCurrent((c) => c + 1);
-      setSelected(null);
-      setShowFeedback(false);
-    }
-  }
-
-  async function submitAssessment(finalAnswers: number[]) {
-    if (!accessToken) return;
-    setSaving(true);
-    const finalScore = finalAnswers.filter((a, i) => a === SAMPLE_QUESTIONS[i]?.correctIndex).length;
-    try {
-      await apiFetch("/assessment/submit", {
-        method: "POST",
-        token: accessToken,
-        body: JSON.stringify({
-          answers: finalAnswers.map((a, i) => ({
-            questionId: SAMPLE_QUESTIONS[i].id,
-            selectedIndex: a,
-          })),
-          score: finalScore,
-          total: SAMPLE_QUESTIONS.length,
-        }),
-      });
-    } catch {
-      // Assessment submission failure is non-blocking
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  const level = score >= 4 ? "Intermediário" : score >= 2 ? "Básico" : "Iniciante";
-  const levelEmoji = score >= 4 ? "🚀" : score >= 2 ? "📚" : "🌱";
+  const {
+    questions,
+    current,
+    selected,
+    showFeedback,
+    done,
+    question,
+    isCorrect,
+    score,
+    progress,
+    level,
+    levelEmoji,
+    saving,
+    handleSelect,
+    handleNext,
+    handleSkip,
+    handleGoToDashboard,
+  } = useAssessmentScreen();
 
   if (done) {
     return (
@@ -137,14 +46,14 @@ export default function AssessmentPage() {
             textAlign: "center",
           }}
         >
-          <div style={{ fontSize: "4rem" }}>{levelEmoji}</div>
+          <div style={{ fontSize: "4rem" }} aria-hidden="true">{levelEmoji}</div>
           <div>
             <h1 style={{ fontSize: "2rem", fontWeight: 800, marginBottom: 8 }}>
               Avaliação concluída!
             </h1>
             <p style={{ color: "var(--text-secondary)" }}>
               Você acertou <strong style={{ color: "var(--text-primary)" }}>{score}</strong> de{" "}
-              <strong>{SAMPLE_QUESTIONS.length}</strong> questões.
+              <strong>{questions.length}</strong> questões.
             </p>
           </div>
 
@@ -183,22 +92,26 @@ export default function AssessmentPage() {
           </div>
 
           <button
-            onClick={() => router.push("/dashboard")}
+            id="assessment-start-learning"
+            onClick={handleGoToDashboard}
             disabled={saving}
             className="btn-primary"
             style={{ width: "100%" }}
           >
             {saving ? "Salvando…" : "Iniciar Aprendizado →"}
           </button>
-          <button onClick={() => router.push("/dashboard")} className="btn-secondary" style={{ width: "100%" }}>
+          <button
+            id="assessment-skip-result"
+            onClick={handleGoToDashboard}
+            className="btn-secondary"
+            style={{ width: "100%" }}
+          >
             Pular por enquanto
           </button>
         </div>
       </div>
     );
   }
-
-  const progress = ((current) / SAMPLE_QUESTIONS.length) * 100;
 
   return (
     <div
@@ -213,18 +126,25 @@ export default function AssessmentPage() {
       }}
     >
       {/* Progress bar */}
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: 3, background: "var(--surface-2)", zIndex: 10 }}>
+      <div
+        style={{ position: "fixed", top: 0, left: 0, right: 0, height: 3, background: "var(--surface-2)", zIndex: 10 }}
+        role="progressbar"
+        aria-valuenow={current + 1}
+        aria-valuemin={1}
+        aria-valuemax={questions.length}
+        aria-label={`Questão ${current + 1} de ${questions.length}`}
+      >
         <div style={{ height: "100%", width: `${progress}%`, background: "linear-gradient(90deg, #7c3aed, #a78bfa)", transition: "width 0.4s ease" }} />
       </div>
 
       <div className="animate-fade-in-up" style={{ width: "100%", maxWidth: 520, display: "flex", flexDirection: "column", gap: 28 }}>
         <div>
           <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: 6 }}>
-            Questão {current + 1} de {SAMPLE_QUESTIONS.length}
+            Questão {current + 1} de {questions.length}
           </p>
-          <h2 style={{ fontSize: "1.25rem", fontWeight: 700, lineHeight: 1.4 }}>
+          <h1 style={{ fontSize: "1.25rem", fontWeight: 700, lineHeight: 1.4 }}>
             {question.text}
-          </h2>
+          </h1>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -247,8 +167,10 @@ export default function AssessmentPage() {
             return (
               <button
                 key={idx}
+                id={`assessment-option-${idx}`}
                 onClick={() => handleSelect(idx)}
                 disabled={showFeedback}
+                aria-pressed={idx === selected}
                 style={{
                   padding: "14px 16px",
                   borderRadius: "var(--radius-md)",
@@ -269,19 +191,20 @@ export default function AssessmentPage() {
         </div>
 
         {showFeedback && (
-          <div className={isCorrect ? "feedback-correct" : "feedback-incorrect"}>
+          <div className={isCorrect ? "feedback-correct" : "feedback-incorrect"} role="status">
             {isCorrect ? "✅ Correto!" : `❌ Incorreto. A resposta correta é: "${question.options[question.correctIndex]}"`}
           </div>
         )}
 
         {showFeedback && (
-          <button onClick={handleNext} className="btn-primary" style={{ width: "100%" }}>
-            {current + 1 < SAMPLE_QUESTIONS.length ? "Próxima questão →" : "Ver resultado →"}
+          <button id="assessment-next" onClick={handleNext} className="btn-primary" style={{ width: "100%" }}>
+            {current + 1 < questions.length ? "Próxima questão →" : "Ver resultado →"}
           </button>
         )}
 
         <button
-          onClick={() => router.push("/dashboard")}
+          id="assessment-skip"
+          onClick={handleSkip}
           style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: "0.85rem", cursor: "pointer", alignSelf: "center" }}
         >
           Pular avaliação

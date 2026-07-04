@@ -30,4 +30,39 @@ export class GamificationRepository {
   async findUserLessonsCompleted(userId: string): Promise<number> {
     return this.prisma.lessonCompletion.count({ where: { userId } });
   }
+
+  async createAchievement(data: {
+    name: string;
+    description: string;
+    iconUrl: string;
+    xpReward: number;
+    criteria: any;
+  }): Promise<Achievement> {
+    return this.prisma.achievement.create({
+      data,
+    });
+  }
+
+  async updateAchievement(
+    id: string,
+    data: Partial<{
+      name: string;
+      description: string;
+      iconUrl: string;
+      xpReward: number;
+      criteria: any;
+    }>,
+  ): Promise<Achievement> {
+    const ach = await this.prisma.achievement.findUnique({
+      where: { id },
+    });
+    if (!ach) {
+      throw new Error('Achievement not found');
+    }
+
+    return this.prisma.achievement.update({
+      where: { id },
+      data,
+    });
+  }
 }

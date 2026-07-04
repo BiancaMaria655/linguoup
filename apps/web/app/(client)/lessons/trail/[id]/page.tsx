@@ -1,39 +1,14 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { apiFetch } from "@/lib/api";
-import { useAuthStore } from "@/store/authStore";
-
-interface Lesson {
-  id: string;
-  title: string;
-  topic: string;
-  durationMinutes: number;
-  status: "completed" | "next" | "locked";
-}
-
-interface Trail {
-  id: string;
-  title: string;
-  description: string;
-  level: string;
-  totalLessons: number;
-  completedLessons: number;
-  lessons: Lesson[];
-}
+import { useTrailDetail } from "@/app/hooks/useTrailDetail";
 
 export default function TrailDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { accessToken } = useAuthStore();
   const router = useRouter();
 
-  const { data: trail, isLoading } = useQuery<Trail>({
-    queryKey: ["trail", id],
-    queryFn: () => apiFetch(`/lessons/trails/${id}`, { token: accessToken ?? undefined }),
-    enabled: !!accessToken && !!id,
-  });
+  const { trail, isLoading } = useTrailDetail(id);
 
   const nextLesson = trail?.lessons.find((l) => l.status === "next");
 
@@ -49,7 +24,35 @@ export default function TrailDetailPage() {
     );
   }
 
-  if (!trail) return <div style={{ padding: "32px 24px", color: "var(--text-muted)" }}>Trilha não encontrada.</div>;
+  if (!trail) {
+    return (
+      <div style={{ maxWidth: 700, margin: "0 auto", padding: "32px 24px", textAlign: "center" }}>
+        <div style={{ fontSize: "3rem", marginBottom: 16 }}>🔍</div>
+        <div style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: 8 }}>Trilha não encontrada.</div>
+        <p style={{ color: "var(--text-muted)", marginBottom: 24, fontSize: "0.9rem" }}>
+          A trilha que você procura não existe ou não está disponível.
+        </p>
+        <Link
+          href="/lessons"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "10px 20px",
+            borderRadius: "var(--radius-full)",
+            background: "var(--brand-600)",
+            color: "white",
+            fontWeight: 600,
+            fontSize: "0.875rem",
+            textDecoration: "none",
+          }}
+        >
+          ← Voltar ao catálogo
+        </Link>
+      </div>
+    );
+  }
+
 
   const pct = trail.totalLessons > 0
     ? Math.round((trail.completedLessons / trail.totalLessons) * 100)

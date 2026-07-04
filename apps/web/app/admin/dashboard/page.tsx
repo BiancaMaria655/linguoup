@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
+import { SkeletonLoader } from "@/app/SkeletonLoader";
 
 interface AdminMetrics {
   totalUsers: number;
@@ -43,11 +44,22 @@ export default function AdminDashboardPage() {
             style={{ borderRadius: "var(--radius-lg)", padding: "20px" }}
           >
             <div style={{ fontSize: "1.75rem", marginBottom: 8 }}>{icon}</div>
-            <div style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--brand-300)" }}>
-              {isLoading ? "—" : value.toLocaleString("pt-BR")}
+            <div style={{ minHeight: "56px" }}>
+              {isLoading ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4, marginBottom: 4 }}>
+                  <SkeletonLoader width="60px" height={24} />
+                  <SkeletonLoader width="120px" height={12} />
+                </div>
+              ) : (
+                <>
+                  <div style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--brand-300)" }}>
+                    {value.toLocaleString("pt-BR")}
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 2 }}>{sub}</div>
+                </>
+              )}
             </div>
-            <div style={{ fontWeight: 600, marginTop: 2, fontSize: "0.9rem" }}>{label}</div>
-            <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 2 }}>{sub}</div>
+            <div style={{ fontWeight: 600, marginTop: 6, fontSize: "0.9rem" }}>{label}</div>
           </div>
         ))}
       </div>
