@@ -9,6 +9,7 @@ export interface UpsertPreferencesData {
   targetLanguage: string;
   dailyGoalMinutes: number;
   preferredStudyTime?: string | null;
+  proficiencyLevel?: string | null;
   onboardingCompleted: boolean;
 }
 

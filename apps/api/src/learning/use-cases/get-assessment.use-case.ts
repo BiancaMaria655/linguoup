@@ -14,6 +14,7 @@ export interface AssessmentQuestion {
   text: string;
   options: string[];
   type: string;
+  correctIndex?: number;
 }
 
 export interface GetAssessmentResult {
@@ -23,11 +24,16 @@ export interface GetAssessmentResult {
 
 function mapLessonToQuestion(lesson: Lesson): AssessmentQuestion {
   const content = lesson.content as Record<string, unknown>;
+  const options = (content['options'] as string[]) ?? [];
+  const answer = content['answer'] as string | undefined;
+  const correctIndex = answer ? options.indexOf(answer) : -1;
+
   return {
     id: lesson.id,
     text: (content['question'] as string) ?? lesson.title,
-    options: (content['options'] as string[]) ?? [],
+    options,
     type: 'multiple_choice',
+    correctIndex: correctIndex !== -1 ? correctIndex : undefined,
   };
 }
 

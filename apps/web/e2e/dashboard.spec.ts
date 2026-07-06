@@ -10,24 +10,25 @@ import { test, expect, Page } from "@playwright/test";
 // Helper: inject authenticated state into localStorage (Zustand persist)
 // ---------------------------------------------------------------------------
 async function injectAuthState(page: Page) {
-  await page.evaluate(() => {
-    localStorage.setItem(
-      "linguoup-auth",
-      JSON.stringify({
-        state: {
-          accessToken: "mock-jwt-token",
-          user: {
-            id: "user-e2e-01",
-            name: "Ana Teste",
-            email: "ana@linguoup.test",
-            role: "USER",
-            onboardingCompleted: true,
-          },
-        },
-        version: 0,
-      })
-    );
+  const authState = JSON.stringify({
+    state: {
+      accessToken: "mock-jwt-token",
+      user: {
+        id: "user-e2e-01",
+        name: "Ana Teste",
+        email: "ana@linguoup.test",
+        role: "USER",
+        onboardingCompleted: true,
+      },
+    },
+    version: 0,
   });
+  await page.context().addCookies([
+    { name: "linguoup-auth", value: authState, domain: "localhost", path: "/" },
+  ]);
+  await page.evaluate((state) => {
+    localStorage.setItem("linguoup-auth", state);
+  }, authState);
 }
 
 // ---------------------------------------------------------------------------
@@ -147,7 +148,7 @@ test.describe("Dashboard — Área Autenticada", () => {
     await page.goto("/dashboard");
 
     // Should display greeting (Bom dia / Boa tarde / Boa noite + first name)
-    await expect(page.getByText(/Ana/)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole("heading", { name: /Ana/ })).toBeVisible({ timeout: 5000 });
 
     // Should display streak card
     await expect(page.getByText(/Streak/i)).toBeVisible();
@@ -156,7 +157,7 @@ test.describe("Dashboard — Área Autenticada", () => {
     await expect(page.getByText(/XP Total/i)).toBeVisible();
 
     // Should display level card
-    await expect(page.getByText(/Nível/i)).toBeVisible();
+    await expect(page.getByText("Nível", { exact: true })).toBeVisible();
   });
 });
 

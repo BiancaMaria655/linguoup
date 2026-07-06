@@ -80,7 +80,7 @@ test.describe("Fluxo de Onboarding Completo", () => {
 
     // 1. Abrir site
     await page.goto("/");
-    await expect(page.getByText("LinguoUp")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "LinguoUp" })).toBeVisible();
     await expect(page.getByRole("link", { name: /Começar agora/i })).toBeVisible();
 
     // 2. Ir para cadastro
@@ -176,28 +176,43 @@ test.describe("Redirect automático", () => {
   }) => {
     await setupNetworkMocks(page);
 
-    // Inject auth state via localStorage (simulates persisted Zustand store)
-    await page.goto("/");
-    await page.evaluate(() => {
-      localStorage.setItem(
-        "linguoup-auth",
-        JSON.stringify({
-          state: {
-            accessToken: "mock-jwt-token",
-            user: {
-              id: "u1",
-              name: "Ana",
-              email: "ana@test.com",
-              role: "USER",
-              onboardingCompleted: true,
-            },
-          },
-          version: 0,
-        })
-      );
+    // Inject auth state via cookie and localStorage (simulates persisted Zustand store)
+    const authState = JSON.stringify({
+      state: {
+        accessToken: "mock-jwt-token",
+        user: {
+          id: "u1",
+          name: "Ana",
+          email: "ana@test.com",
+          role: "USER",
+          onboardingCompleted: true,
+        },
+      },
+      version: 0,
     });
+    await page.context().addCookies([
+      { name: "linguoup-auth", value: authState, domain: "localhost", path: "/" },
+    ]);
+    await page.goto("/");
+    await page.evaluate((state) => {
+      localStorage.setItem("linguoup-auth", state);
+    }, authState);
     await page.reload();
 
     await expect(page).toHaveURL("/dashboard", { timeout: 3000 });
+  });
+
+  test("visitante não autenticado em /onboarding deve ser redirecionado para /login", async ({
+    page,
+  }) => {
+    await page.goto("/onboarding");
+    await expect(page).toHaveURL("/login");
+  });
+
+  test("visitante não autenticado em /assessment deve ser redirecionado para /login", async ({
+    page,
+  }) => {
+    await page.goto("/assessment");
+    await expect(page).toHaveURL("/login");
   });
 });

@@ -12,14 +12,14 @@ interface OnboardingState {
   learningGoal: string;
   targetLanguage: string;
   dailyMinutes: number;
-  preferredHour: number;
+  preferredStudyTime: string;
 }
 
 interface OnboardingPayload {
   learningGoal: string;
   targetLanguage: string;
   dailyGoalMinutes: number;
-  preferredStudyHour: number;
+  preferredStudyTime: string | null;
 }
 
 const STEPS: Step[] = ["goal", "language", "availability", "plan"];
@@ -43,7 +43,7 @@ export function useOnboardingScreen() {
     learningGoal: "",
     targetLanguage: "",
     dailyMinutes: 10,
-    preferredHour: 8,
+    preferredStudyTime: "MORNING",
   });
 
   const currentIndex = STEPS.indexOf(step);
@@ -56,7 +56,7 @@ export function useOnboardingScreen() {
           learningGoal: state.learningGoal,
           targetLanguage: state.targetLanguage,
           dailyGoalMinutes: state.dailyMinutes,
-          preferredStudyHour: state.preferredHour,
+          preferredStudyTime: state.preferredStudyTime,
         },
         accessToken ?? ""
       ),

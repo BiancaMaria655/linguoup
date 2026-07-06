@@ -48,6 +48,7 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
           targetLanguage: data.targetLanguage,
           dailyGoalMinutes: data.dailyGoalMinutes,
           preferredStudyTime: data.preferredStudyTime ?? undefined,
+          proficiencyLevel: data.proficiencyLevel ?? undefined,
           onboardingCompleted: data.onboardingCompleted,
         },
         update: {
@@ -55,6 +56,7 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
           targetLanguage: data.targetLanguage,
           dailyGoalMinutes: data.dailyGoalMinutes,
           preferredStudyTime: data.preferredStudyTime ?? null,
+          ...(data.proficiencyLevel !== undefined && { proficiencyLevel: data.proficiencyLevel }),
           onboardingCompleted: data.onboardingCompleted,
         },
       });

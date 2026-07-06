@@ -50,6 +50,7 @@ model UserPreferences {
   dailyGoalMinutes    Int
   dailyGoalLessons    Int      @default(1)
   preferredStudyTime  String?
+  proficiencyLevel    String?
   studyReminderTime   String?
   studyReminderEmail  Boolean  @default(false)
   onboardingCompleted Boolean  @default(false)

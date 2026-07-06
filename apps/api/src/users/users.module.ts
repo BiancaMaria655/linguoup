@@ -25,5 +25,6 @@ import { UpdateGoalsUseCase } from './use-cases/update-goals.use-case';
     GetInitialPlanUseCase,
     UpdateGoalsUseCase,
   ],
+  exports: [UserProfileRepository],
 })
 export class UsersModule {}

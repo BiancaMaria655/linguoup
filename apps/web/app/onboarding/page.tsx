@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useOnboardingScreen } from "@/app/hooks/useOnboardingScreen";
 
 const GOALS = [
@@ -28,7 +26,6 @@ const DAILY_OPTIONS = [
 ];
 
 export default function OnboardingPage() {
-  const router = useRouter();
   const {
     step,
     state,
@@ -41,15 +38,9 @@ export default function OnboardingPage() {
     steps,
     saving,
     error,
-    isAlreadyCompleted,
   } = useOnboardingScreen();
 
-  // Redirect if onboarding already completed
-  useEffect(() => {
-    if (isAlreadyCompleted) {
-      router.replace("/dashboard");
-    }
-  }, [isAlreadyCompleted, router]);
+
 
   return (
     <div
@@ -190,26 +181,42 @@ export default function OnboardingPage() {
                 )}
               </button>
             ))}
-            <div style={{ marginTop: 8 }}>
+            <div style={{ marginTop: 16 }}>
               <label
-                htmlFor="onboarding-hour"
-                style={{ fontSize: "0.875rem", color: "var(--text-secondary)", marginBottom: 8, display: "block" }}
+                htmlFor="onboarding-period"
+                style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8, display: "block" }}
               >
-                Horário preferencial de estudo: {state.preferredHour}h
+                Melhor horário para você
               </label>
-              <input
-                id="onboarding-hour"
-                type="range"
-                min={5}
-                max={23}
-                value={state.preferredHour}
-                onChange={(e) => update("preferredHour", Number(e.target.value))}
-                style={{ width: "100%", accentColor: "var(--brand-500)" }}
-              />
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 4 }}>
-                <span>5h (manhã cedo)</span>
-                <span>23h (noite)</span>
-              </div>
+              <select
+                id="onboarding-period"
+                value={state.preferredStudyTime}
+                onChange={(e) => update("preferredStudyTime", e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--surface-border)",
+                  background: "var(--surface-1)",
+                  color: "var(--text-primary)",
+                  fontSize: "0.95rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  appearance: "none",
+                  backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='rgba(139,92,246,0.8)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>")`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "right 16px center",
+                  backgroundSize: "16px",
+                  paddingRight: "40px",
+                  outline: "none",
+                  transition: "all 0.15s ease",
+                  fontFamily: "inherit",
+                }}
+              >
+                <option value="MORNING">Manhã (06:00 - 12:00)</option>
+                <option value="AFTERNOON">Hora do almoço (12:00 - 14:00)</option>
+                <option value="EVENING">Noite (18:00 - 24:00)</option>
+              </select>
             </div>
           </div>
         )}
@@ -220,7 +227,13 @@ export default function OnboardingPage() {
               <PlanItem icon="🎯" label="Objetivo" value={GOALS.find((g) => g.value === state.learningGoal)?.label ?? "—"} />
               <PlanItem icon="🌍" label="Idioma" value={LANGUAGES.find((l) => l.value === state.targetLanguage)?.label ?? "—"} />
               <PlanItem icon="⏱" label="Meta diária" value={`${state.dailyMinutes} minutos/dia`} />
-              <PlanItem icon="🕐" label="Horário" value={`${state.preferredHour}h`} />
+              <PlanItem icon="🕐" label="Horário" value={
+                state.preferredStudyTime === "MORNING"
+                  ? "Manhã (06:00 - 12:00)"
+                  : state.preferredStudyTime === "AFTERNOON"
+                  ? "Hora do almoço (12:00 - 14:00)"
+                  : "Noite (18:00 - 24:00)"
+              } />
             </div>
             {error && <div className="feedback-incorrect" role="alert">{error}</div>}
           </div>

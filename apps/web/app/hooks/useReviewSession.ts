@@ -101,7 +101,9 @@ export function useReviewSession(items: ReviewItem[]): UseReviewSessionReturn {
   function handleNext() {
     const next = sessionIndex + 1;
     if (next >= sessionItems.length) {
-      setSessionActive(false);
+      setSessionIndex(next);
+      setSelected(null);
+      setShowFeedback(false);
       queryClient.invalidateQueries({ queryKey: ["reviews"] });
       queryClient.invalidateQueries({ queryKey: ["home"] });
     } else {

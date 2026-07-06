@@ -29,10 +29,11 @@ import { AdminEditLessonUseCase } from './use-cases/admin-edit-lesson.use-case';
 import { AdminDeactivateLessonUseCase } from './use-cases/admin-deactivate-lesson.use-case';
 import { GetAdminMetricsUseCase } from './use-cases/get-admin-metrics.use-case';
 import { GamificationModule } from '../gamification/gamification.module';
+import { UsersModule } from '../users/users.module';
 
 
 @Module({
-  imports: [AuthModule, GamificationModule],
+  imports: [AuthModule, GamificationModule, UsersModule],
   controllers: [
     LessonsController,
     ProgressController,

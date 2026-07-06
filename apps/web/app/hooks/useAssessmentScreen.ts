@@ -14,9 +14,7 @@ interface Question {
 }
 
 interface SubmitPayload {
-  answers: { questionId: string; selectedIndex: number }[];
-  score: number;
-  total: number;
+  answers: { questionId: string; answer: string }[];
 }
 
 // Static fallback questions used when the API is unavailable
@@ -71,11 +69,13 @@ export function useAssessmentScreen() {
   const questionsQuery = useQuery<Question[]>({
     queryKey: ["assessment-questions"],
     queryFn: async () => {
-      const data = await apiFetch<Question[]>("/assessment/questions", {
+      const data = await apiFetch<{ questions: Question[]; estimatedMinutes: number }>("/lessons/assessment", {
         token: accessToken ?? undefined,
       });
       // Use API data only if it's a non-empty array
-      if (Array.isArray(data) && data.length > 0) return data;
+      if (data && Array.isArray(data.questions) && data.questions.length > 0) {
+        return data.questions;
+      }
       return SAMPLE_QUESTIONS;
     },
     initialData: SAMPLE_QUESTIONS,
@@ -86,7 +86,7 @@ export function useAssessmentScreen() {
 
   const submitMutation = useMutation({
     mutationFn: (payload: SubmitPayload) =>
-      apiFetch("/assessment/submit", {
+      apiFetch("/lessons/assessment/submit", {
         method: "POST",
         token: accessToken ?? undefined,
         body: JSON.stringify(payload),
@@ -106,17 +106,12 @@ export function useAssessmentScreen() {
     setAnswers(newAnswers);
 
     if (current + 1 >= questions.length) {
-      const finalScore = newAnswers.filter(
-        (a, i) => a === questions[i]?.correctIndex
-      ).length;
       setDone(true);
       submitMutation.mutate({
         answers: newAnswers.map((a, i) => ({
           questionId: questions[i].id,
-          selectedIndex: a,
+          answer: questions[i].options[a],
         })),
-        score: finalScore,
-        total: questions.length,
       });
     } else {
       setCurrent((c) => c + 1);

@@ -198,14 +198,14 @@ describe("useReviewSession", () => {
   });
 
   describe("handleNext() — last item (session conclusion)", () => {
-    it("should set sessionActive to false when last item is advanced", () => {
+    it("should keep sessionActive as true when last item is advanced (to show completion screen)", () => {
       const singleItem = [makeItem()];
       const { result } = renderHook(() => useReviewSession(singleItem));
       act(() => { result.current.startSession(); });
       act(() => { result.current.handleSelect("Hello"); });
       act(() => { result.current.handleNext(); });
 
-      expect(result.current.sessionActive).toBe(false);
+      expect(result.current.sessionActive).toBe(true);
     });
 
     it("should invalidate [reviews] and [home] queries on completion", () => {

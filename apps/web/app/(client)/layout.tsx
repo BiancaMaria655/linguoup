@@ -24,8 +24,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   useEffect(() => {
     if (!accessToken) {
       router.push("/login");
+    } else if (user && !user.onboardingCompleted) {
+      router.push("/onboarding");
     }
-  }, [accessToken, router]);
+  }, [accessToken, user, router]);
 
   // Badge: use same ["notifications"] key as NotificationsPage — TanStack Query deduplicates the request
   const { data: notificationsData = [] } = useQuery<Notification[]>({

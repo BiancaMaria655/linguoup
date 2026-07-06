@@ -149,7 +149,7 @@ describe("useOnboardingScreen", () => {
       act(() => result.current.update("learningGoal", "CAREER"));
       act(() => result.current.update("targetLanguage", "en"));
       act(() => result.current.update("dailyMinutes", 15));
-      act(() => result.current.update("preferredHour", 9));
+      act(() => result.current.update("preferredStudyTime", "MORNING"));
 
       await act(async () => {
         result.current.handleCreatePlan();

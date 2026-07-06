@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/", "/login", "/register", "/onboarding", "/assessment"];
+const PUBLIC_PATHS = ["/", "/login", "/register"];
 const ADMIN_PATHS = ["/admin"];
 
 export function proxy(request: NextRequest) {
@@ -17,7 +17,7 @@ export function proxy(request: NextRequest) {
   }
 
   const token = request.cookies.get("linguoup-auth")?.value;
-  let parsed: { state?: { accessToken?: string; user?: { role?: string } } } | null = null;
+  let parsed: { state?: { accessToken?: string; user?: { role?: string; onboardingCompleted?: boolean } } } | null = null;
   try {
     parsed = token ? JSON.parse(token) : null;
   } catch {
@@ -26,18 +26,29 @@ export function proxy(request: NextRequest) {
 
   const accessToken = parsed?.state?.accessToken ?? null;
   const role = parsed?.state?.user?.role ?? null;
+  const onboardingCompleted = parsed?.state?.user?.onboardingCompleted ?? false;
 
   const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"));
   const isAdmin = ADMIN_PATHS.some((p) => pathname.startsWith(p));
 
-  // Redirect authenticated users away from auth pages
-  if (accessToken && isPublic && pathname !== "/" && !pathname.startsWith("/onboarding") && !pathname.startsWith("/assessment")) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-
   // Protect authenticated-only routes
   if (!accessToken && !isPublic) {
     return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // Force onboarding flow if not completed
+  if (accessToken && !onboardingCompleted && pathname !== "/onboarding" && !pathname.startsWith("/onboarding/") && pathname !== "/assessment" && !pathname.startsWith("/assessment/")) {
+    return NextResponse.redirect(new URL("/onboarding", request.url));
+  }
+
+  // Redirect onboarded users away from onboarding pages
+  if (accessToken && onboardingCompleted && pathname.startsWith("/onboarding")) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  // Redirect authenticated users away from auth pages
+  if (accessToken && isPublic && pathname !== "/" && !pathname.startsWith("/onboarding") && !pathname.startsWith("/assessment")) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   // Protect admin routes
