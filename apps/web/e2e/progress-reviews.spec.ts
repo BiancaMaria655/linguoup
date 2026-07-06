@@ -187,6 +187,18 @@ async function setupMocks(page: Page) {
   });
 }
 
+async function injectAuthAndNavigate(page: Page, path: string) {
+  const authState = buildAuthState();
+  await page.goto("/");
+  await page.context().addCookies([
+    { name: "linguoup-auth", value: authState, domain: "localhost", path: "/" },
+  ]);
+  await page.evaluate((state) => {
+    localStorage.setItem("linguoup-auth", state);
+  }, authState);
+  await page.goto(path);
+}
+
 
 // ── Tests ────────────────────────────────────────────────────────────────────
 
@@ -194,15 +206,7 @@ async function setupMocks(page: Page) {
 test.describe("Progresso e Revisões — Jornada Completa", () => {
   test("deve exibir tela de progresso com stats e gráficos carregados", async ({ page }) => {
     await setupMocks(page);
-
-    const authState = buildAuthState();
-    await page.context().addCookies([
-      { name: "linguoup-auth", value: authState, domain: "localhost", path: "/" },
-    ]);
-
-    await page.goto("/progress");
-    await page.evaluate((state) => { localStorage.setItem("linguoup-auth", state); }, authState);
-    await page.reload();
+    await injectAuthAndNavigate(page, "/progress");
 
     // Heading should appear
     await expect(page.getByRole("heading", { name: /Progresso/i })).toBeVisible({ timeout: 8000 });
@@ -218,11 +222,7 @@ test.describe("Progresso e Revisões — Jornada Completa", () => {
 
   test("deve filtrar por período ao clicar nos botões 7 dias / 30 dias / 90 dias", async ({ page }) => {
     await setupMocks(page);
-    const authState = buildAuthState();
-    await page.context().addCookies([{ name: "linguoup-auth", value: authState, domain: "localhost", path: "/" }]);
-    await page.goto("/progress");
-    await page.evaluate((state) => { localStorage.setItem("linguoup-auth", state); }, authState);
-    await page.reload();
+    await injectAuthAndNavigate(page, "/progress");
 
     await expect(page.getByRole("heading", { name: /Progresso/i })).toBeVisible({ timeout: 8000 });
 
@@ -237,11 +237,7 @@ test.describe("Progresso e Revisões — Jornada Completa", () => {
 
   test("deve abrir modal de meta diária, ajustar slider e salvar", async ({ page }) => {
     await setupMocks(page);
-    const authState = buildAuthState();
-    await page.context().addCookies([{ name: "linguoup-auth", value: authState, domain: "localhost", path: "/" }]);
-    await page.goto("/progress");
-    await page.evaluate((state) => { localStorage.setItem("linguoup-auth", state); }, authState);
-    await page.reload();
+    await injectAuthAndNavigate(page, "/progress");
 
     await expect(page.getByText("min/dia")).toBeVisible({ timeout: 8000 });
 
@@ -269,11 +265,7 @@ test.describe("Progresso e Revisões — Jornada Completa", () => {
 
   test("deve exibir lista de revisões pendentes com badge de vencidos", async ({ page }) => {
     await setupMocks(page);
-    const authState = buildAuthState();
-    await page.context().addCookies([{ name: "linguoup-auth", value: authState, domain: "localhost", path: "/" }]);
-    await page.goto("/reviews");
-    await page.evaluate((state) => { localStorage.setItem("linguoup-auth", state); }, authState);
-    await page.reload();
+    await injectAuthAndNavigate(page, "/reviews");
 
     await expect(page.getByRole("heading", { name: /Revisões/i })).toBeVisible({ timeout: 8000 });
     await expect(page.getByText("1 vencidos")).toBeVisible({ timeout: 5000 });
@@ -282,11 +274,7 @@ test.describe("Progresso e Revisões — Jornada Completa", () => {
 
   test("deve iniciar sessão de revisão, responder todos os itens e ver tela de resultado", async ({ page }) => {
     await setupMocks(page);
-    const authState = buildAuthState();
-    await page.context().addCookies([{ name: "linguoup-auth", value: authState, domain: "localhost", path: "/" }]);
-    await page.goto("/reviews");
-    await page.evaluate((state) => { localStorage.setItem("linguoup-auth", state); }, authState);
-    await page.reload();
+    await injectAuthAndNavigate(page, "/reviews");
 
     await expect(page.getByRole("button", { name: /Revisar agora/i })).toBeVisible({ timeout: 8000 });
 
