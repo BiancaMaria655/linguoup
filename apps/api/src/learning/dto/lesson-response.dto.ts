@@ -9,9 +9,24 @@ export class LessonResponseDto {
   @ApiProperty() durationMinutes!: number;
 }
 
+export class LessonExerciseDto {
+  @ApiProperty() id!: string;
+  @ApiProperty() type!: string;
+  @ApiProperty() question!: string;
+  @ApiPropertyOptional({ type: [String] }) options?: string[];
+  @ApiProperty() correctAnswer!: string;
+  @ApiPropertyOptional() hint?: string;
+  @ApiPropertyOptional() explanation?: string;
+}
+
 export class LessonDetailResponseDto extends LessonResponseDto {
   @ApiProperty({ type: Object, description: 'Full lesson content including exercises' })
   content!: Record<string, unknown>;
+
+  @ApiProperty() topic!: string;
+
+  @ApiProperty({ type: [LessonExerciseDto] })
+  exercises!: LessonExerciseDto[];
 }
 
 export class PaginationMetadataDto {

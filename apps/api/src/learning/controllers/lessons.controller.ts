@@ -27,6 +27,7 @@ import { ListLessonsQueryDto } from '../dto/list-lessons-query.dto';
 import { ListTrailsQueryDto } from '../dto/list-trails-query.dto';
 import { CompleteLessonDto } from '../dto/complete-lesson.dto';
 import { SubmitAssessmentDto } from '../dto/submit-assessment.dto';
+import { LessonDetailResponseDto } from '../dto/lesson-response.dto';
 import { MetricsInterceptor } from '../../common/interceptors/metrics.interceptor';
 import { ListLessonsUseCase } from '../use-cases/list-lessons.use-case';
 import { GetLessonUseCase } from '../use-cases/get-lesson.use-case';
@@ -145,7 +146,7 @@ export class LessonsController {
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Retorna o detalhe completo de uma lição' })
-  @ApiOkResponse({ description: 'Lição retornada com sucesso' })
+  @ApiOkResponse({ description: 'Lição retornada com sucesso', type: LessonDetailResponseDto })
   @ApiNotFoundResponse({ description: 'Lição não encontrada' })
   @ApiUnauthorizedResponse({ description: 'Token inválido ou ausente' })
   async getLesson(@Req() req: Request, @Param('id') id: string) {
@@ -159,7 +160,55 @@ export class LessonsController {
       traceId,
     });
 
-    return { data: lesson };
+    const exercises: any[] = [];
+    const content = (lesson.content || {}) as any;
+    if (content && Array.isArray(content.slides)) {
+      content.slides.forEach((slide: any, index: number) => {
+        if (slide.type === 'quiz' || slide.type === 'multiple_choice') {
+          exercises.push({
+            id: slide.id || `${lesson.id}-ex-${index}`,
+            type: 'multiple_choice',
+            question: slide.question || '',
+            options: slide.options || [],
+            correctAnswer: slide.answer || slide.correctAnswer || '',
+            hint: slide.hint || undefined,
+            explanation: slide.explanation || undefined,
+          });
+        } else if (slide.type === 'vocab' || slide.type === 'translation') {
+          exercises.push({
+            id: slide.id || `${lesson.id}-ex-${index}`,
+            type: 'translation',
+            question: slide.question || `Translate: ${slide.term || ''}`,
+            correctAnswer: slide.translation || slide.correctAnswer || '',
+            hint: slide.audioUrl || slide.hint || undefined,
+          });
+        } else if (slide.type === 'fill_blank') {
+          exercises.push({
+            id: slide.id || `${lesson.id}-ex-${index}`,
+            type: 'fill_blank',
+            question: slide.question || '',
+            correctAnswer: slide.correctAnswer || slide.answer || '',
+            hint: slide.hint || undefined,
+          });
+        }
+      });
+    } else if (content && Array.isArray(content.exercises)) {
+      exercises.push(...content.exercises);
+    }
+
+    return {
+      data: {
+        id: lesson.id,
+        title: lesson.title,
+        description: lesson.description,
+        level: lesson.level,
+        theme: lesson.theme,
+        topic: lesson.theme, // map theme to topic for frontend
+        durationMinutes: lesson.durationMinutes,
+        exercises,
+        content: lesson.content,
+      },
+    };
   }
 
   @Post(':id/complete')
