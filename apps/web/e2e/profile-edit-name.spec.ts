@@ -116,7 +116,7 @@ async function setupProfileMocks(page: Page, currentName = "Ana Teste") {
 async function injectAuthAndNavigate(page: Page, path: string, name = "Ana Teste") {
   const authState = buildAuthState(name);
   await page.context().addCookies([
-    { name: "linguoup-auth", value: authState, domain: "localhost", path: "/" },
+    { name: "linguoup-auth", value: encodeURIComponent(authState), domain: "localhost", path: "/" },
   ]);
   await page.goto(path);
   await page.evaluate((state: string) => {

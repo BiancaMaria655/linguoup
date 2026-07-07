@@ -144,7 +144,7 @@ test.describe("Execução de Microlição — Jornada Completa", () => {
 
     // Set cookie first (needed by middleware before first navigation)
     const authState = buildAuthState();
-    await page.context().addCookies([{ name: "linguoup-auth", value: authState, domain: "localhost", path: "/" }]);
+    await page.context().addCookies([{ name: "linguoup-auth", value: encodeURIComponent(authState), domain: "localhost", path: "/" }]);
 
     // Navigate to lesson page (now authenticated via cookie)
     await page.goto(`/lessons/${LESSON_ID}`);
@@ -214,7 +214,8 @@ test.describe("Execução de Microlição — Jornada Completa", () => {
 
     // Set cookie first (needed by middleware before first navigation)
     const authState = buildAuthState();
-    await page.context().addCookies([{ name: "linguoup-auth", value: authState, domain: "localhost", path: "/" }]);
+    await page.context().addCookies([{ name: "linguoup-auth", value: encodeURIComponent(authState), domain: "localhost", path: "/" }]);
+
 
 
     await page.goto(`/lessons/${LESSON_ID}`);

@@ -19,9 +19,14 @@ export function proxy(request: NextRequest) {
   const token = request.cookies.get("linguoup-auth")?.value;
   let parsed: { state?: { accessToken?: string; user?: { role?: string; onboardingCompleted?: boolean } } } | null = null;
   try {
-    parsed = token ? JSON.parse(token) : null;
+    parsed = token ? JSON.parse(decodeURIComponent(token)) : null;
   } catch {
-    parsed = null;
+    // Fallback: try parsing raw value (e.g., injected without encoding in tests)
+    try {
+      parsed = token ? JSON.parse(token) : null;
+    } catch {
+      parsed = null;
+    }
   }
 
   const accessToken = parsed?.state?.accessToken ?? null;
