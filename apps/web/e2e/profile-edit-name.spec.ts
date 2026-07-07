@@ -111,18 +111,21 @@ async function setupProfileMocks(page: Page, currentName = "Ana Teste") {
 }
 
 // ---------------------------------------------------------------------------
-// Helper: inject auth and reload (same pattern as other E2E tests)
+// Helper: inject auth and navigate (webkit-safe: no reload)
+// Navigate to "/" first to inject cookie+localStorage, then goto target.
+// This avoids the webkit "Frame load interrupted" bug on page.reload()
+// after RSC payload fetch failures.
 // ---------------------------------------------------------------------------
 async function injectAuthAndNavigate(page: Page, path: string, name = "Ana Teste") {
   const authState = buildAuthState(name);
+  await page.goto("/");
   await page.context().addCookies([
-    { name: "linguoup-auth", value: encodeURIComponent(authState), domain: "localhost", path: "/" },
+    { name: "linguoup-auth", value: authState, domain: "localhost", path: "/" },
   ]);
-  await page.goto(path);
   await page.evaluate((state: string) => {
     localStorage.setItem("linguoup-auth", state);
   }, authState);
-  await page.reload();
+  await page.goto(path);
 }
 
 // ---------------------------------------------------------------------------

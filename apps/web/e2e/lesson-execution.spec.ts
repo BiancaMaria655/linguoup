@@ -142,18 +142,13 @@ test.describe("Execução de Microlição — Jornada Completa", () => {
   }) => {
     await setupLessonMocks(page);
 
-    // Set cookie first (needed by middleware before first navigation)
+    // Navigate to public page first, inject auth, then navigate to target
+    // (avoids webkit page.reload() race with RSC payload fetch)
     const authState = buildAuthState();
-    await page.context().addCookies([{ name: "linguoup-auth", value: encodeURIComponent(authState), domain: "localhost", path: "/" }]);
-
-    // Navigate to lesson page (now authenticated via cookie)
-    await page.goto(`/lessons/${LESSON_ID}`);
-
-    // Inject localStorage (Zustand — for useAuthStore in hooks)
+    await page.goto("/");
+    await page.context().addCookies([{ name: "linguoup-auth", value: authState, domain: "localhost", path: "/" }]);
     await page.evaluate((state) => { localStorage.setItem("linguoup-auth", state); }, authState);
-
-    // Reload so hooks pick up the auth from localStorage
-    await page.reload();
+    await page.goto(`/lessons/${LESSON_ID}`);
 
     // Should render the lesson (first exercise: multiple choice)
     await expect(page.getByText("What does 'Hello' mean?")).toBeVisible({
@@ -212,15 +207,13 @@ test.describe("Execução de Microlição — Jornada Completa", () => {
   }) => {
     await setupLessonMocks(page);
 
-    // Set cookie first (needed by middleware before first navigation)
+    // Navigate to public page first, inject auth, then navigate to target
+    // (avoids webkit page.reload() race with RSC payload fetch)
     const authState = buildAuthState();
-    await page.context().addCookies([{ name: "linguoup-auth", value: encodeURIComponent(authState), domain: "localhost", path: "/" }]);
-
-
-
-    await page.goto(`/lessons/${LESSON_ID}`);
+    await page.goto("/");
+    await page.context().addCookies([{ name: "linguoup-auth", value: authState, domain: "localhost", path: "/" }]);
     await page.evaluate((state) => { localStorage.setItem("linguoup-auth", state); }, authState);
-    await page.reload();
+    await page.goto(`/lessons/${LESSON_ID}`);
 
     // Answer all questions quickly (doesn't matter if correct/incorrect for navigation test)
     await expect(page.getByText("What does 'Hello' mean?")).toBeVisible({
