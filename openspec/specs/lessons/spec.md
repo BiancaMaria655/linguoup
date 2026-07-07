@@ -9,7 +9,7 @@ Gerencia o catálogo de lições, detalhes individuais, conclusão atômica de l
 ## Requirements
 
 ### Requirement: List Lessons Catalog
-O sistema SHALL retornar um catálogo paginado de lições disponíveis para o tenant do usuário autenticado. A listagem usa paginação cursor-based e suporta filtros por `level` e `theme`. O resultado é servido a partir do cache Redis (TTL 1h, Cache-aside). O sistema valida `tenant_id` implícito via JWT, exige RBAC mínimo `USER`, e retorna `{ data: Lesson[], metadata: { cursor, total } }`.
+O sistema SHALL retornar um catálogo paginado de lições disponíveis e ativas (`isActive: true`) para o tenant do usuário autenticado. A listagem usa paginação cursor-based e suporta filtros por `level` e `theme`. O resultado é servido a partir do cache Redis (TTL 1h, Cache-aside). O sistema valida `tenant_id` implícito via JWT, exige RBAC mínimo `USER`, e retorna `{ data: Lesson[], metadata: { cursor, total } }`.
 
 **Endpoint**: `GET /api/v1/lessons`
 **RBAC**: `USER` ou superior
@@ -52,10 +52,14 @@ O sistema SHALL retornar um catálogo paginado de lições disponíveis para o t
 - **WHEN** usuário faz requisição sem Bearer token
 - **THEN** sistema retorna 401 com `error.code = UNAUTHORIZED`
 
+#### Scenario: Inactive lessons are excluded from catalog
+- **WHEN** uma lição possui `isActive: false` no banco de dados e o usuário faz a listagem
+- **THEN** a lição inativa não é incluída na resposta do catálogo
+
 ---
 
 ### Requirement: Get Lesson Detail
-O sistema SHALL retornar o detalhe completo de uma lição (incluindo `content` com exercícios) para o tenant do usuário autenticado. Valida que a lição pertence ao mesmo `tenant_id` do usuário. RBAC mínimo: `USER`.
+O sistema SHALL retornar o detalhe completo de uma lição ativa (`isActive: true`, incluindo `content` com exercícios) para o tenant do usuário autenticado. Valida que a lição pertence ao mesmo `tenant_id` do usuário e que está ativa. RBAC mínimo: `USER`.
 
 **Endpoint**: `GET /api/v1/lessons/{id}`
 **RBAC**: `USER` ou superior
@@ -82,6 +86,10 @@ O sistema SHALL retornar o detalhe completo de uma lição (incluindo `content` 
 
 #### Scenario: Lesson not found or wrong tenant
 - **WHEN** usuário faz `GET /api/v1/lessons/{id}` com ID inexistente ou de outro tenant
+- **THEN** sistema retorna 404 com `error.code = NOT_FOUND`
+
+#### Scenario: Attempt to get inactive lesson detail
+- **WHEN** usuário faz `GET /api/v1/lessons/{id}` com ID de uma lição que possui `isActive: false`
 - **THEN** sistema retorna 404 com `error.code = NOT_FOUND`
 
 ---

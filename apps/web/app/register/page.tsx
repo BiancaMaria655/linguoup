@@ -1,55 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { apiFetch } from "@/lib/api";
-import { useAuthStore } from "@/store/authStore";
+import { useRegisterScreen } from "@/app/hooks/useRegisterScreen";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const setAuth = useAuthStore((s) => s.setAuth);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const {
+    name,
+    setName,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    error,
+    loading,
+    handleSubmit,
+    isAlreadyAuthenticated,
+  } = useRegisterScreen();
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name || !email || !password) return;
-    setLoading(true);
-    setError(null);
-    try {
-      await apiFetch("/auth/register", {
-        method: "POST",
-        body: JSON.stringify({ name, email, password, tenant_id: "tenant_default_123" }),
-      });
-      const loginData = await apiFetch<{ accessToken: string }>("/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-      });
-      const profile = await apiFetch<{
-        id: string; name: string; email: string; role: "USER" | "ADMIN" | "SUPER_ADMIN";
-        preferences: { onboardingCompleted: boolean; targetLanguage?: string; learningGoal?: string; dailyGoalMinutes?: number } | null;
-      }>("/users/me", { token: loginData.accessToken });
-      setAuth(loginData.accessToken, {
-        id: profile.id,
-        name: profile.name,
-        email: profile.email,
-        role: profile.role,
-        onboardingCompleted: profile.preferences?.onboardingCompleted ?? false,
-        targetLanguage: profile.preferences?.targetLanguage,
-        learningGoal: profile.preferences?.learningGoal,
-        dailyGoalMinutes: profile.preferences?.dailyGoalMinutes,
-      });
-      router.push("/onboarding");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao criar conta.");
-    } finally {
-      setLoading(false);
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAlreadyAuthenticated) {
+      router.replace("/dashboard");
     }
-  }
+  }, [isAlreadyAuthenticated, router]);
 
   return (
     <div
@@ -81,9 +57,9 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div>
-            <label htmlFor="name" style={labelStyle}>Nome</label>
+            <label htmlFor="register-name" style={labelStyle}>Nome</label>
             <input
-              id="name"
+              id="register-name"
               type="text"
               autoComplete="name"
               value={name}
@@ -91,12 +67,13 @@ export default function RegisterPage() {
               placeholder="Seu nome"
               className="input-field"
               required
+              minLength={2}
             />
           </div>
           <div>
-            <label htmlFor="email" style={labelStyle}>E-mail</label>
+            <label htmlFor="register-email" style={labelStyle}>E-mail</label>
             <input
-              id="email"
+              id="register-email"
               type="email"
               autoComplete="email"
               value={email}
@@ -107,9 +84,9 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label htmlFor="password" style={labelStyle}>Senha</label>
+            <label htmlFor="register-password" style={labelStyle}>Senha</label>
             <input
-              id="password"
+              id="register-password"
               type="password"
               autoComplete="new-password"
               value={password}
@@ -129,7 +106,7 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            disabled={loading || !name || !email || !password}
+            disabled={loading || !name || !email || !password || password.length < 8}
             className="btn-primary"
             style={{ width: "100%", marginTop: 4 }}
           >

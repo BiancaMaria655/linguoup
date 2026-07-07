@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
+import { SplashScreenWrapper } from "./SplashScreenWrapper";
 
 export const metadata: Metadata = {
   title: "LinguoUp — Aprenda idiomas em minutos por dia",
@@ -16,9 +17,10 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="h-full">
       <body className="min-h-full flex flex-col">
-        <Providers>{children}</Providers>
+        <Providers>
+          <SplashScreenWrapper>{children}</SplashScreenWrapper>
+        </Providers>
       </body>
     </html>
   );
 }
-

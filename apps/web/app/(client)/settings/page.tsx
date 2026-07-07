@@ -1,71 +1,21 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { apiFetch } from "@/lib/api";
-import { useAuthStore } from "@/store/authStore";
-import { useRouter } from "next/navigation";
+import { useSettingsScreen, type UserSettings } from "@/app/hooks/useSettingsScreen";
 
-interface UserSettings {
-  name: string;
-  dailyGoalMinutes: number;
-  preferredStudyHour: number;
-  notificationFrequency: "never" | "once" | "twice" | "thrice";
-}
+// ── Constants ──────────────────────────────────────────────────────────────
 
-const FREQ_OPTIONS: { value: UserSettings["notificationFrequency"]; label: string }[] = [
+const FREQ_OPTIONS: { value: "never" | "once" | "twice" | "thrice"; label: string }[] = [
   { value: "never", label: "Nunca" },
   { value: "once", label: "1x por dia" },
   { value: "twice", label: "2x por dia" },
   { value: "thrice", label: "3x por dia" },
 ];
 
+// ── Component ──────────────────────────────────────────────────────────────
+
 export default function SettingsPage() {
-  const { accessToken, clearAuth } = useAuthStore();
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const [form, setForm] = useState<UserSettings>({
-    name: "",
-    dailyGoalMinutes: 10,
-    preferredStudyHour: 8,
-    notificationFrequency: "once",
-  });
-  const [saved, setSaved] = useState(false);
-
-  const { data, isLoading } = useQuery<UserSettings>({
-    queryKey: ["settings"],
-    queryFn: () => apiFetch("/users/me/settings", { token: accessToken ?? undefined }),
-    enabled: !!accessToken,
-  });
-
-  useEffect(() => {
-    if (data) setForm(data);
-  }, [data]);
-
-  const saveMutation = useMutation({
-    mutationFn: () =>
-      apiFetch("/users/me", {
-        method: "PATCH",
-        token: accessToken ?? undefined,
-        body: JSON.stringify({
-          name: form.name,
-          dailyGoalMinutes: form.dailyGoalMinutes,
-          preferredStudyHour: form.preferredStudyHour,
-          notificationFrequency: form.notificationFrequency,
-        }),
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
-      queryClient.invalidateQueries({ queryKey: ["home"] });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    },
-  });
-
-  function handleLogout() {
-    clearAuth();
-    router.push("/");
-  }
+  const { isLoading, form, setForm, saved, saveError, isSaving, saveSettings, logout } =
+    useSettingsScreen();
 
   return (
     <div style={{ maxWidth: 600, margin: "0 auto", padding: "32px 24px" }}>
@@ -84,7 +34,7 @@ export default function SettingsPage() {
         </div>
       ) : (
         <form
-          onSubmit={(e) => { e.preventDefault(); saveMutation.mutate(); }}
+          onSubmit={(e) => { e.preventDefault(); saveSettings(); }}
           style={{ display: "flex", flexDirection: "column", gap: 24 }}
         >
           {/* Section: Profile */}
@@ -93,7 +43,7 @@ export default function SettingsPage() {
               <input
                 type="text"
                 value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                onChange={(e) => setForm((f: UserSettings) => ({ ...f, name: e.target.value }))}
                 className="input-field"
                 placeholder="Seu nome"
               />
@@ -109,7 +59,7 @@ export default function SettingsPage() {
                 max={60}
                 step={5}
                 value={form.dailyGoalMinutes}
-                onChange={(e) => setForm((f) => ({ ...f, dailyGoalMinutes: Number(e.target.value) }))}
+                onChange={(e) => setForm((f: UserSettings) => ({ ...f, dailyGoalMinutes: Number(e.target.value) }))}
                 style={{ width: "100%", accentColor: "var(--brand-500)" }}
               />
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "var(--text-muted)" }}>
@@ -123,7 +73,7 @@ export default function SettingsPage() {
                 min={5}
                 max={23}
                 value={form.preferredStudyHour}
-                onChange={(e) => setForm((f) => ({ ...f, preferredStudyHour: Number(e.target.value) }))}
+                onChange={(e) => setForm((f: UserSettings) => ({ ...f, preferredStudyHour: Number(e.target.value) }))}
                 style={{ width: "100%", accentColor: "var(--brand-500)" }}
               />
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "var(--text-muted)" }}>
@@ -140,7 +90,7 @@ export default function SettingsPage() {
                   <button
                     key={value}
                     type="button"
-                    onClick={() => setForm((f) => ({ ...f, notificationFrequency: value }))}
+                    onClick={() => setForm((f: UserSettings) => ({ ...f, notificationFrequency: value }))}
                     style={{
                       padding: "6px 14px",
                       borderRadius: "var(--radius-full)",
@@ -167,13 +117,11 @@ export default function SettingsPage() {
                 ✅ Configurações salvas!
               </div>
             )}
-            {saveMutation.isError && (
-              <div className="feedback-incorrect">
-                {saveMutation.error instanceof Error ? saveMutation.error.message : "Erro ao salvar."}
-              </div>
+            {saveError && (
+              <div className="feedback-incorrect">{saveError}</div>
             )}
-            <button type="submit" disabled={saveMutation.isPending} className="btn-primary" style={{ width: "100%" }}>
-              {saveMutation.isPending ? "Salvando…" : "Salvar configurações"}
+            <button type="submit" disabled={isSaving} className="btn-primary" style={{ width: "100%" }}>
+              {isSaving ? "Salvando…" : "Salvar configurações"}
             </button>
           </div>
 
@@ -185,7 +133,7 @@ export default function SettingsPage() {
             </div>
             <button
               type="button"
-              onClick={handleLogout}
+              onClick={logout}
               style={{ padding: "12px", borderRadius: "var(--radius-md)", border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.08)", color: "#fca5a5", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}
             >
               Sair da Conta
@@ -196,6 +144,8 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+// ── Sub-components ──────────────────────────────────────────────────────────
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (

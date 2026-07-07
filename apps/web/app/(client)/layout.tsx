@@ -4,6 +4,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/api";
+import type { Notification } from "@/app/hooks/useNotificationsScreen";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Início", icon: HomeIcon },
@@ -21,8 +24,18 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   useEffect(() => {
     if (!accessToken) {
       router.push("/login");
+    } else if (user && !user.onboardingCompleted) {
+      router.push("/onboarding");
     }
-  }, [accessToken, router]);
+  }, [accessToken, user, router]);
+
+  // Badge: use same ["notifications"] key as NotificationsPage — TanStack Query deduplicates the request
+  const { data: notificationsData = [] } = useQuery<Notification[]>({
+    queryKey: ["notifications"],
+    queryFn: () => apiFetch("/notifications", { token: accessToken ?? undefined }),
+    enabled: !!accessToken,
+  });
+  const unreadCount = notificationsData.filter((n) => !n.read).length;
 
   if (!accessToken) return null;
 
@@ -71,13 +84,38 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         <nav style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
+            const isProfile = href === "/profile";
             return (
               <Link
                 key={href}
                 href={href}
                 className={`sidebar-link ${active ? "active" : ""}`}
               >
-                <Icon size={18} />
+                <span style={{ position: "relative", display: "inline-flex" }}>
+                  <Icon size={18} />
+                  {isProfile && unreadCount > 0 && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: -4,
+                        right: -6,
+                        minWidth: 14,
+                        height: 14,
+                        borderRadius: "var(--radius-full)",
+                        background: "var(--brand-500)",
+                        color: "white",
+                        fontSize: "0.55rem",
+                        fontWeight: 700,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: "0 3px",
+                      }}
+                    >
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
+                </span>
                 {label}
               </Link>
             );
@@ -134,6 +172,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <nav className="bottom-nav" role="navigation" aria-label="Navegação principal">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
+          const isProfile = href === "/profile";
           return (
             <Link
               key={href}
@@ -150,7 +189,31 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 fontWeight: active ? 600 : 400,
               }}
             >
-              <Icon size={20} />
+              <span style={{ position: "relative", display: "inline-flex" }}>
+                <Icon size={20} />
+                {isProfile && unreadCount > 0 && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: -4,
+                      right: -6,
+                      minWidth: 14,
+                      height: 14,
+                      borderRadius: "var(--radius-full)",
+                      background: "var(--brand-500)",
+                      color: "white",
+                      fontSize: "0.55rem",
+                      fontWeight: 700,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "0 3px",
+                    }}
+                  >
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </span>
               {label}
             </Link>
           );

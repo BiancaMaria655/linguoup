@@ -1,71 +1,39 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
+import { useStreakScreen, StreakData } from "@/app/hooks/useStreakScreen";
 
 type Period = "7" | "30" | "90";
 
-interface ProgressData {
-  totalLessons: number;
-  weekLessons: number;
-  totalMinutes: number;
-  weekMinutes: number;
-  vocabulary: number;
-  streak: number;
-  bestStreak: number;
-  dailyActivity: { date: string; minutes: number }[];
-  weeklyActivity: { week: string; minutes: number }[];
-  currentStreak: number;
-  calendarDays: { date: string; active: boolean }[];
-  dailyGoalMinutes: number;
-}
-
-interface Achievement {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  unlocked: boolean;
-  unlockedAt?: string;
-  criteria: string;
-}
-
 export default function ProgressPage() {
   const { accessToken } = useAuthStore();
-  const queryClient = useQueryClient();
   const [period, setPeriod] = useState<Period>("30");
-  const [showGoalModal, setShowGoalModal] = useState(false);
-  const [newGoal, setNewGoal] = useState(10);
 
-  const { data: progress, isLoading: progressLoading } = useQuery<ProgressData>({
+  const { data: progress, isLoading: progressLoading } = useQuery<StreakData>({
     queryKey: ["progress", period],
     queryFn: () => apiFetch(`/progress?days=${period}`, { token: accessToken ?? undefined }),
     enabled: !!accessToken,
   });
 
-  const { data: achievements = [], isLoading: achievementsLoading } = useQuery<Achievement[]>({
-    queryKey: ["achievements"],
-    queryFn: () => apiFetch("/achievements/me", { token: accessToken ?? undefined }),
-    enabled: !!accessToken,
-  });
+  const {
+    streak,
+    bestStreak,
+    dailyGoalMinutes,
+    calendarDays,
+    dailyActivity,
+    showGoalModal,
+    newGoal,
+    setNewGoal,
+    openGoalModal,
+    closeGoalModal,
+    updateGoal,
+    isUpdatingGoal,
+  } = useStreakScreen(progress);
 
-  const updateGoalMutation = useMutation({
-    mutationFn: (minutes: number) =>
-      apiFetch("/users/me/onboarding", {
-        method: "POST",
-        token: accessToken ?? undefined,
-        body: JSON.stringify({ dailyGoalMinutes: minutes }),
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["progress"] });
-      queryClient.invalidateQueries({ queryKey: ["home"] });
-      setShowGoalModal(false);
-    },
-  });
-
-  const maxMinutes = Math.max(...(progress?.dailyActivity.map((d) => d.minutes) ?? [1]), 1);
+  const maxMinutes = Math.max(...(dailyActivity.map((d) => d.minutes) ?? [1]), 1);
 
   return (
     <div style={{ maxWidth: 700, margin: "0 auto", padding: "32px 24px" }}>
@@ -105,7 +73,7 @@ export default function ProgressPage() {
           { icon: "📖", label: "Lições concluídas", value: progressLoading ? "—" : `${progress?.totalLessons ?? 0}` },
           { icon: "⏱", label: "Minutos estudados", value: progressLoading ? "—" : `${progress?.totalMinutes ?? 0}` },
           { icon: "🔤", label: "Vocabulário aprendido", value: progressLoading ? "—" : `${progress?.vocabulary ?? 0}` },
-          { icon: "🔥", label: "Melhor sequência", value: progressLoading ? "—" : `${progress?.bestStreak ?? 0} dias` },
+          { icon: "🔥", label: "Melhor sequência", value: progressLoading ? "—" : `${bestStreak} dias` },
         ].map(({ icon, label, value }) => (
           <div key={label} className="glass" style={{ borderRadius: "var(--radius-md)", padding: "16px", display: "flex", flexDirection: "column", gap: 6 }}>
             <div style={{ fontSize: "1.4rem" }}>{icon}</div>
@@ -122,7 +90,7 @@ export default function ProgressPage() {
           <div className="skeleton" style={{ height: 80, borderRadius: "var(--radius-sm)" }} />
         ) : (
           <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 80, overflowX: "auto" }}>
-            {progress?.dailyActivity.slice(-30).map((d) => {
+            {dailyActivity.slice(-30).map((d) => {
               const h = Math.max(4, Math.round((d.minutes / maxMinutes) * 72));
               return (
                 <div
@@ -149,7 +117,7 @@ export default function ProgressPage() {
         <div className="glass" style={{ borderRadius: "var(--radius-lg)", padding: "20px" }}>
           <div style={{ fontSize: "2rem", marginBottom: 4 }}>🔥</div>
           <div style={{ fontSize: "2rem", fontWeight: 800, color: "var(--status-pending)", lineHeight: 1 }}>
-            {progressLoading ? "—" : progress?.streak ?? 0}
+            {progressLoading ? "—" : streak}
           </div>
           <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: 4 }}>Sequência atual</div>
         </div>
@@ -159,14 +127,14 @@ export default function ProgressPage() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div style={{ fontSize: "2rem" }}>🎯</div>
             <button
-              onClick={() => { setNewGoal(progress?.dailyGoalMinutes ?? 10); setShowGoalModal(true); }}
+              onClick={openGoalModal}
               style={{ background: "none", border: "none", color: "var(--brand-400)", cursor: "pointer", fontSize: "0.75rem", fontFamily: "inherit" }}
             >
               Alterar
             </button>
           </div>
           <div style={{ fontSize: "2rem", fontWeight: 800, color: "var(--brand-400)", lineHeight: 1, marginTop: 4 }}>
-            {progressLoading ? "—" : `${progress?.dailyGoalMinutes ?? 10}`}
+            {progressLoading ? "—" : dailyGoalMinutes}
           </div>
           <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: 4 }}>min/dia</div>
         </div>
@@ -179,7 +147,7 @@ export default function ProgressPage() {
           <div className="skeleton" style={{ height: 60, borderRadius: "var(--radius-sm)" }} />
         ) : (
           <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-            {progress?.calendarDays.map((day) => (
+            {calendarDays.map((day) => (
               <div
                 key={day.date}
                 title={new Date(day.date).toLocaleDateString("pt-BR")}
@@ -195,49 +163,11 @@ export default function ProgressPage() {
         )}
       </div>
 
-      {/* Achievements */}
-      <div>
-        <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: 16 }}>Conquistas</h2>
-        {achievementsLoading ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div key={i} className="skeleton" style={{ height: 80, borderRadius: "var(--radius-md)" }} />
-            ))}
-          </div>
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: 10 }}>
-            {achievements.map((a) => (
-              <div
-                key={a.id}
-                title={a.unlocked ? `${a.title} — ${a.description}` : `Bloqueado: ${a.criteria}`}
-                style={{
-                  padding: "12px 8px",
-                  borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--surface-border)",
-                  background: a.unlocked ? "var(--surface-1)" : "var(--surface-0)",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 6,
-                  opacity: a.unlocked ? 1 : 0.4,
-                  cursor: "default",
-                }}
-              >
-                <div style={{ fontSize: "1.75rem" }}>{a.icon}</div>
-                <div style={{ fontSize: "0.7rem", fontWeight: 600, textAlign: "center", color: a.unlocked ? "var(--text-primary)" : "var(--text-muted)", lineHeight: 1.2 }}>
-                  {a.title}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
       {/* Goal modal */}
       {showGoalModal && (
         <div
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 100, display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 24 }}
-          onClick={(e) => { if (e.target === e.currentTarget) setShowGoalModal(false); }}
+          onClick={(e) => { if (e.target === e.currentTarget) closeGoalModal(); }}
         >
           <div
             style={{ background: "var(--surface-1)", borderRadius: "var(--radius-lg)", padding: "24px", width: "100%", maxWidth: 480, border: "1px solid var(--surface-border)" }}
@@ -256,9 +186,9 @@ export default function ProgressPage() {
               style={{ width: "100%", accentColor: "var(--brand-500)", marginBottom: 20 }}
             />
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => setShowGoalModal(false)} className="btn-secondary" style={{ flex: 1 }}>Cancelar</button>
-              <button onClick={() => updateGoalMutation.mutate(newGoal)} disabled={updateGoalMutation.isPending} className="btn-primary" style={{ flex: 1 }}>
-                {updateGoalMutation.isPending ? "Salvando…" : "Salvar"}
+              <button onClick={closeGoalModal} className="btn-secondary" style={{ flex: 1 }}>Cancelar</button>
+              <button onClick={() => updateGoal(newGoal)} disabled={isUpdatingGoal} className="btn-primary" style={{ flex: 1 }}>
+                {isUpdatingGoal ? "Salvando…" : "Salvar"}
               </button>
             </div>
           </div>

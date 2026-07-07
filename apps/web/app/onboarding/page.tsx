@@ -1,18 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { apiFetch } from "@/lib/api";
-import { useAuthStore } from "@/store/authStore";
-
-type Step = "goal" | "language" | "availability" | "plan";
-
-interface OnboardingState {
-  learningGoal: string;
-  targetLanguage: string;
-  dailyMinutes: number;
-  preferredHour: number;
-}
+import { useOnboardingScreen } from "@/app/hooks/useOnboardingScreen";
 
 const GOALS = [
   { value: "CAREER", label: "Trabalho", icon: "💼", description: "Reuniões e crescimento profissional" },
@@ -38,63 +26,21 @@ const DAILY_OPTIONS = [
 ];
 
 export default function OnboardingPage() {
-  const router = useRouter();
-  const { accessToken, updateUser } = useAuthStore();
-  const [step, setStep] = useState<Step>("goal");
-  const [state, setState] = useState<OnboardingState>({
-    learningGoal: "",
-    targetLanguage: "",
-    dailyMinutes: 10,
-    preferredHour: 8,
-  });
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    step,
+    state,
+    update,
+    next,
+    back,
+    handleCreatePlan,
+    currentIndex,
+    progress,
+    steps,
+    saving,
+    error,
+  } = useOnboardingScreen();
 
-  const steps: Step[] = ["goal", "language", "availability", "plan"];
-  const currentIndex = steps.indexOf(step);
-  const progress = ((currentIndex + 1) / steps.length) * 100;
 
-  function update<K extends keyof OnboardingState>(key: K, value: OnboardingState[K]) {
-    setState((s) => ({ ...s, [key]: value }));
-  }
-
-  function next() {
-    const next = steps[currentIndex + 1];
-    if (next) setStep(next);
-  }
-
-  function back() {
-    const prev = steps[currentIndex - 1];
-    if (prev) setStep(prev);
-  }
-
-  async function handleCreatePlan() {
-    if (!accessToken) return;
-    setSaving(true);
-    setError(null);
-    try {
-      await apiFetch("/users/me/onboarding", {
-        method: "POST",
-        token: accessToken,
-        body: JSON.stringify({
-          learningGoal: state.learningGoal,
-          targetLanguage: state.targetLanguage,
-          dailyGoalMinutes: state.dailyMinutes,
-          preferredStudyHour: state.preferredHour,
-        }),
-      });
-      updateUser({
-        onboardingCompleted: true,
-        learningGoal: state.learningGoal,
-        targetLanguage: state.targetLanguage,
-        dailyGoalMinutes: state.dailyMinutes,
-      });
-      router.push("/assessment");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao salvar plano.");
-      setSaving(false);
-    }
-  }
 
   return (
     <div
@@ -120,6 +66,11 @@ export default function OnboardingPage() {
           background: "var(--surface-2)",
           zIndex: 10,
         }}
+        role="progressbar"
+        aria-valuenow={currentIndex + 1}
+        aria-valuemin={1}
+        aria-valuemax={steps.length}
+        aria-label={`Passo ${currentIndex + 1} de ${steps.length}`}
       >
         <div
           style={{
@@ -178,6 +129,7 @@ export default function OnboardingPage() {
                 <button
                   key={l.value}
                   onClick={() => update("targetLanguage", l.value)}
+                  aria-pressed={selected}
                   style={{
                     padding: "16px",
                     display: "flex",
@@ -205,6 +157,7 @@ export default function OnboardingPage() {
               <button
                 key={o.value}
                 onClick={() => update("dailyMinutes", o.value)}
+                aria-pressed={state.dailyMinutes === o.value}
                 style={{
                   padding: "16px",
                   borderRadius: "var(--radius-md)",
@@ -228,22 +181,42 @@ export default function OnboardingPage() {
                 )}
               </button>
             ))}
-            <div style={{ marginTop: 8 }}>
-              <label style={{ fontSize: "0.875rem", color: "var(--text-secondary)", marginBottom: 8, display: "block" }}>
-                Horário preferencial de estudo: {state.preferredHour}h
+            <div style={{ marginTop: 16 }}>
+              <label
+                htmlFor="onboarding-period"
+                style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8, display: "block" }}
+              >
+                Melhor horário para você
               </label>
-              <input
-                type="range"
-                min={5}
-                max={23}
-                value={state.preferredHour}
-                onChange={(e) => update("preferredHour", Number(e.target.value))}
-                style={{ width: "100%", accentColor: "var(--brand-500)" }}
-              />
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 4 }}>
-                <span>5h (manhã cedo)</span>
-                <span>23h (noite)</span>
-              </div>
+              <select
+                id="onboarding-period"
+                value={state.preferredStudyTime}
+                onChange={(e) => update("preferredStudyTime", e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--surface-border)",
+                  background: "var(--surface-1)",
+                  color: "var(--text-primary)",
+                  fontSize: "0.95rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  appearance: "none",
+                  backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='rgba(139,92,246,0.8)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>")`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "right 16px center",
+                  backgroundSize: "16px",
+                  paddingRight: "40px",
+                  outline: "none",
+                  transition: "all 0.15s ease",
+                  fontFamily: "inherit",
+                }}
+              >
+                <option value="MORNING">Manhã (06:00 - 12:00)</option>
+                <option value="AFTERNOON">Hora do almoço (12:00 - 14:00)</option>
+                <option value="EVENING">Noite (18:00 - 24:00)</option>
+              </select>
             </div>
           </div>
         )}
@@ -254,9 +227,15 @@ export default function OnboardingPage() {
               <PlanItem icon="🎯" label="Objetivo" value={GOALS.find((g) => g.value === state.learningGoal)?.label ?? "—"} />
               <PlanItem icon="🌍" label="Idioma" value={LANGUAGES.find((l) => l.value === state.targetLanguage)?.label ?? "—"} />
               <PlanItem icon="⏱" label="Meta diária" value={`${state.dailyMinutes} minutos/dia`} />
-              <PlanItem icon="🕐" label="Horário" value={`${state.preferredHour}h`} />
+              <PlanItem icon="🕐" label="Horário" value={
+                state.preferredStudyTime === "MORNING"
+                  ? "Manhã (06:00 - 12:00)"
+                  : state.preferredStudyTime === "AFTERNOON"
+                  ? "Hora do almoço (12:00 - 14:00)"
+                  : "Noite (18:00 - 24:00)"
+              } />
             </div>
-            {error && <div className="feedback-incorrect">{error}</div>}
+            {error && <div className="feedback-incorrect" role="alert">{error}</div>}
           </div>
         )}
 
@@ -311,6 +290,8 @@ function OptionCard({
   return (
     <button
       onClick={onSelect}
+      role="radio"
+      aria-checked={selected}
       style={{
         padding: "16px",
         borderRadius: "var(--radius-md)",
@@ -324,8 +305,6 @@ function OptionCard({
         textAlign: "left",
         width: "100%",
       }}
-      role="radio"
-      aria-checked={selected}
     >
       <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>{icon}</span>
       <div>

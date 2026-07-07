@@ -24,6 +24,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { ListLessonsQueryDto } from '../dto/list-lessons-query.dto';
+import { ListTrailsQueryDto } from '../dto/list-trails-query.dto';
 import { CompleteLessonDto } from '../dto/complete-lesson.dto';
 import { SubmitAssessmentDto } from '../dto/submit-assessment.dto';
 import { MetricsInterceptor } from '../../common/interceptors/metrics.interceptor';
@@ -32,6 +33,9 @@ import { GetLessonUseCase } from '../use-cases/get-lesson.use-case';
 import { CompleteLessonUseCase } from '../use-cases/complete-lesson.use-case';
 import { GetAssessmentUseCase } from '../use-cases/get-assessment.use-case';
 import { SubmitAssessmentUseCase } from '../use-cases/submit-assessment.use-case';
+import { ListTrailsUseCase } from '../use-cases/list-trails.use-case';
+import { GetTrailUseCase } from '../use-cases/get-trail.use-case';
+
 
 interface AuthenticatedUser {
   id: string;
@@ -52,7 +56,10 @@ export class LessonsController {
     private readonly completeLessonUseCase: CompleteLessonUseCase,
     private readonly getAssessmentUseCase: GetAssessmentUseCase,
     private readonly submitAssessmentUseCase: SubmitAssessmentUseCase,
+    private readonly listTrailsUseCase: ListTrailsUseCase,
+    private readonly getTrailUseCase: GetTrailUseCase,
   ) {}
+
 
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -76,7 +83,47 @@ export class LessonsController {
     return result;
   }
 
-  // NOTE: /assessment must come BEFORE /:id to avoid route conflict
+  // NOTE: /trails and /assessment must come BEFORE /:id to avoid route conflicts
+
+  @Get('trails')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Lista o catálogo de trilhas de aprendizado (agrupadas por tema/nível)' })
+  @ApiOkResponse({ description: 'Lista de trilhas retornada com sucesso' })
+  @ApiUnauthorizedResponse({ description: 'Token inválido ou ausente' })
+  async listTrails(@Req() req: Request, @Query() query: ListTrailsQueryDto) {
+    const user = (req as any).user as AuthenticatedUser;
+    const traceId = crypto.randomUUID();
+
+    const trails = await this.listTrailsUseCase.execute({
+      userId: user.id,
+      tenantId: user.tenant_id,
+      traceId,
+      level: query.level,
+    });
+
+    return { data: trails };
+  }
+
+  @Get('trails/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Retorna o detalhe de uma trilha com status de cada lição' })
+  @ApiOkResponse({ description: 'Trilha retornada com sucesso' })
+  @ApiNotFoundResponse({ description: 'Trilha não encontrada' })
+  @ApiUnauthorizedResponse({ description: 'Token inválido ou ausente' })
+  async getTrail(@Req() req: Request, @Param('id') id: string) {
+    const user = (req as any).user as AuthenticatedUser;
+    const traceId = crypto.randomUUID();
+
+    const trail = await this.getTrailUseCase.execute({
+      trailId: id,
+      userId: user.id,
+      tenantId: user.tenant_id,
+      traceId,
+    });
+
+    return { data: trail };
+  }
+
   @Get('assessment')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Retorna perguntas de avaliação de nível (estimado: 10 min)' })

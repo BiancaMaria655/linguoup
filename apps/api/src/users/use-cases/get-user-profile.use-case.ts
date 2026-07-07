@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UserProfileRepository } from '../interfaces/user-preferences-repository.interface';
-import { IUserProfile } from '../interfaces/user-profile.interface';
+import { IUserProfile, UserLevel } from '../interfaces/user-profile.interface';
 
 export interface GetUserProfileCommand {
   userId: string;
@@ -25,7 +25,7 @@ export class GetUserProfileUseCase {
       name: user.name,
       email: user.email,
       role: user.role as IUserProfile['role'],
-      level: 'BEGINNER',
+      level: (user.preferences?.proficiencyLevel as UserLevel) ?? 'BEGINNER',
       preferences: user.preferences
         ? {
             learningGoal: user.preferences.learningGoal,

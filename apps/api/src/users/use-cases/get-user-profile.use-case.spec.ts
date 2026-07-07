@@ -65,6 +65,35 @@ describe('GetUserProfileUseCase', () => {
     expect(result.preferences?.targetLanguage).toBe('en-US');
   });
 
+  it('should return profile with correct proficiency level from preferences', async () => {
+    const userWithPrefs = {
+      id: 'user-id',
+      name: 'Maria Silva',
+      email: 'maria@example.com',
+      role: 'USER',
+      tenant_id: 'tenant-1',
+      createdAt: new Date('2024-01-01'),
+      updatedAt: new Date('2024-01-01'),
+      passwordHash: 'hash',
+      preferences: {
+        userId: 'user-id',
+        learningGoal: 'TRAVEL',
+        targetLanguage: 'en-US',
+        dailyGoalMinutes: 15,
+        preferredStudyTime: 'MORNING',
+        proficiencyLevel: 'INTERMEDIATE',
+        onboardingCompleted: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    };
+    mockUserProfileRepository.findByIdWithPreferences.mockResolvedValue(userWithPrefs);
+
+    const result = await useCase.execute(command);
+
+    expect(result.level).toBe('INTERMEDIATE');
+  });
+
   it('should return profile with null preferences when user has not done onboarding', async () => {
     const userWithoutPrefs = {
       id: 'user-id',

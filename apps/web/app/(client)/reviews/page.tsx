@@ -1,18 +1,9 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
-
-interface ReviewItem {
-  id: string;
-  question: string;
-  options?: string[];
-  correctAnswer: string;
-  dueDate: string;
-  topic: string;
-}
+import { useReviewSession, ReviewItem } from "@/app/hooks/useReviewSession";
 
 interface ReviewsData {
   items: ReviewItem[];
@@ -23,12 +14,6 @@ interface ReviewsData {
 export default function ReviewsPage() {
   const { accessToken } = useAuthStore();
   const queryClient = useQueryClient();
-  const [sessionActive, setSessionActive] = useState(false);
-  const [sessionIndex, setSessionIndex] = useState(0);
-  const [sessionItems, setSessionItems] = useState<ReviewItem[]>([]);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [scores, setScores] = useState<boolean[]>([]);
 
   const { data, isLoading } = useQuery<ReviewsData>({
     queryKey: ["reviews"],
@@ -42,55 +27,26 @@ export default function ReviewsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["reviews"] }),
   });
 
-  const completeMutation = useMutation({
-    mutationFn: (body: { itemId: string; correct: boolean }) =>
-      apiFetch(`/reviews/${body.itemId}/complete`, {
-        method: "POST",
-        token: accessToken ?? undefined,
-        body: JSON.stringify({ correct: body.correct }),
-      }),
-  });
-
-  function startSession() {
-    const items = data?.items.slice(0, 10) ?? [];
-    setSessionItems(items);
-    setSessionIndex(0);
-    setSelected(null);
-    setShowFeedback(false);
-    setScores([]);
-    setSessionActive(true);
-  }
-
-  function handleSelect(answer: string) {
-    if (showFeedback) return;
-    const item = sessionItems[sessionIndex];
-    const isCorrect = answer.trim().toLowerCase() === item.correctAnswer.trim().toLowerCase();
-    setSelected(answer);
-    setShowFeedback(true);
-    setScores((s) => [...s, isCorrect]);
-    completeMutation.mutate({ itemId: item.id, correct: isCorrect });
-  }
-
-  function handleNext() {
-    const next = sessionIndex + 1;
-    if (next >= sessionItems.length) {
-      setSessionActive(false);
-      queryClient.invalidateQueries({ queryKey: ["reviews"] });
-      queryClient.invalidateQueries({ queryKey: ["home"] });
-    } else {
-      setSessionIndex(next);
-      setSelected(null);
-      setShowFeedback(false);
-    }
-  }
+  const {
+    sessionIndex,
+    sessionActive,
+    selected,
+    showFeedback,
+    scores,
+    currentItem,
+    startSession,
+    endSession,
+    handleSelect,
+    handleNext,
+  } = useReviewSession(data?.items ?? []);
 
   if (sessionActive) {
-    const item = sessionItems[sessionIndex];
-    const total = sessionItems.length;
-    const progress = (sessionIndex / total) * 100;
-    const isCorrect = showFeedback && selected?.trim().toLowerCase() === item.correctAnswer.trim().toLowerCase();
+    const item = currentItem;
+    const total = Math.min(data?.items.length ?? 0, 10);
+    const progressPct = (sessionIndex / total) * 100;
 
-    if (sessionIndex >= total) {
+    if (!item) {
+      // Session concluded — result screen
       const correct = scores.filter(Boolean).length;
       return (
         <div style={{ maxWidth: 600, margin: "0 auto", padding: "32px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: 24, textAlign: "center" }}>
@@ -100,19 +56,23 @@ export default function ReviewsPage() {
             Você acertou <strong style={{ color: "var(--text-primary)" }}>{correct}</strong> de{" "}
             <strong>{total}</strong> itens.
           </p>
-          <button onClick={() => setSessionActive(false)} className="btn-primary" style={{ width: "100%", maxWidth: 320 }}>
+          <button onClick={endSession} className="btn-primary" style={{ width: "100%", maxWidth: 320 }}>
             Voltar para Revisões
           </button>
         </div>
       );
     }
 
+    const isCorrect =
+      showFeedback &&
+      selected?.trim().toLowerCase() === item.correctAnswer.trim().toLowerCase();
+
     return (
       <div style={{ minHeight: "100vh", background: "var(--surface-0)", display: "flex", flexDirection: "column" }}>
         <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--surface-border)", display: "flex", alignItems: "center", gap: 16, background: "var(--surface-1)" }}>
-          <button onClick={() => setSessionActive(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: "1.2rem", fontFamily: "inherit" }}>✕</button>
+          <button onClick={endSession} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: "1.2rem", fontFamily: "inherit" }}>✕</button>
           <div className="progress-bar-track" style={{ flex: 1 }}>
-            <div className="progress-bar-fill" style={{ width: `${progress}%` }} />
+            <div className="progress-bar-fill" style={{ width: `${progressPct}%` }} />
           </div>
           <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", flexShrink: 0 }}>{sessionIndex + 1}/{total}</span>
         </div>
@@ -137,9 +97,9 @@ export default function ReviewsPage() {
             </div>
           ) : (
             <div>
-              <input type="text" value={selected ?? ""} onChange={(e) => setSelected(e.target.value)} disabled={showFeedback} placeholder="Digite a resposta…" className="input-field" onKeyDown={(e) => { if (e.key === "Enter" && selected?.trim()) handleSelect(selected); }} autoFocus />
-              {!showFeedback && selected?.trim() && (
-                <button onClick={() => handleSelect(selected)} className="btn-primary" style={{ width: "100%", marginTop: 12 }}>Verificar</button>
+              <input type="text" value={selected ?? ""} onChange={(e) => handleSelect(e.target.value)} disabled={showFeedback} placeholder="Digite a resposta…" className="input-field" onKeyDown={(e) => { if (e.key === "Enter" && (selected ?? "").trim()) handleSelect(selected ?? ""); }} autoFocus />
+              {!showFeedback && (selected ?? "").trim() && (
+                <button onClick={() => handleSelect(selected ?? "")} className="btn-primary" style={{ width: "100%", marginTop: 12 }}>Verificar</button>
               )}
             </div>
           )}
