@@ -11,6 +11,7 @@ import { UsersModule } from './users/users.module';
 import { LearningModule } from './learning/learning.module';
 import { GamificationModule } from './gamification/gamification.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { MetricsModule } from './common/metrics/metrics.module';
 
 
 @Module({
@@ -30,6 +31,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     LearningModule,
     GamificationModule,
     NotificationsModule,
+    MetricsModule,
   ],
   controllers: [AppController],
   providers: [

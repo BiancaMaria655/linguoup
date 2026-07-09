@@ -57,3 +57,5 @@ ios/
 /playwright/.auth/
 .vercel
 .env*
+/logs/
+
