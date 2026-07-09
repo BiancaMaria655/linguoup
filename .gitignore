@@ -58,4 +58,4 @@ ios/
 .vercel
 .env*
 /logs/
-
+/monitoring/prometheus/prometheus-rendered.yml

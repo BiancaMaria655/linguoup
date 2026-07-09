@@ -1,6 +1,7 @@
 import { ConsoleLogger, Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
+import { pushToLoki } from './loki-client';
 
 let logStream: fs.WriteStream | null = null;
 
@@ -64,5 +65,9 @@ export class GlobalLogger extends ConsoleLogger {
     } catch (err) {
       console.error('Failed to write log to file:', err);
     }
+
+    // Direct push to Loki in production/cloud environment
+    pushToLoki(logLine);
   }
 }
+

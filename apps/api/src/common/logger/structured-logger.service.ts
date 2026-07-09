@@ -19,6 +19,8 @@ function getLogStream(): fs.WriteStream | null {
   }
 }
 
+import { pushToLoki } from './loki-client';
+
 @Injectable({ scope: Scope.TRANSIENT })
 export class StructuredLogger implements NestLoggerService {
   private serviceName: string = 'api';
@@ -79,5 +81,9 @@ export class StructuredLogger implements NestLoggerService {
     } catch (err) {
       console.error('Failed to write log to file:', err);
     }
+
+    // Direct push to Loki in production/cloud environment
+    pushToLoki(logLine);
   }
 }
+

@@ -1,17 +1,36 @@
 services:
-  prometheus:
+  # Init container: renders prometheus-cloud.yml template with env vars and exits
+  prometheus-config-init:
+    image: alpine:3.19
     volumes:
-      - ./monitoring/prometheus/prometheus-cloud.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus/prometheus-cloud.yml:/tpl/prometheus.tpl.yml:ro
+      - ./monitoring/prometheus:/out
+    environment:
+      - GRAFANA_CLOUD_PROMETHEUS_URL=${GRAFANA_CLOUD_PROMETHEUS_URL}/push
+      - GRAFANA_CLOUD_PROMETHEUS_USER=${GRAFANA_CLOUD_PROMETHEUS_USER}
+      - GRAFANA_CLOUD_PROMETHEUS_API_KEY=${GRAFANA_CLOUD_PROMETHEUS_API_KEY}
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        apk add --no-cache gettext --quiet
+        envsubst < /tpl/prometheus.tpl.yml > /out/prometheus-rendered.yml
+        echo "Config rendered successfully."
+        cat /out/prometheus-rendered.yml
+
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    volumes:
+      - ./monitoring/prometheus/prometheus-rendered.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
-      - '--enable-feature=expand-external-env'
-    environment:
-      - GRAFANA_CLOUD_PROMETHEUS_URL=${GRAFANA_CLOUD_PROMETHEUS_URL}
-      - GRAFANA_CLOUD_PROMETHEUS_USER=${GRAFANA_CLOUD_PROMETHEUS_USER}
-      - GRAFANA_CLOUD_PROMETHEUS_API_KEY=${GRAFANA_CLOUD_PROMETHEUS_API_KEY}
+    depends_on:
+      prometheus-config-init:
+        condition: service_completed_successfully
 
   promtail:
     volumes:
@@ -29,3 +48,8 @@ services:
 
   grafana:
     scale: 0
+
+volumes:
+  prometheus_data:
+    external: true
+    name: linguoup_prometheus_data
