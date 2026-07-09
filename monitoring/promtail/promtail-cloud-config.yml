@@ -6,7 +6,7 @@ positions:
   filename: /tmp/positions.yaml
 
 clients:
-  - url: ${GRAFANA_CLOUD_LOKI_URL}
+  - url: ${GRAFANA_CLOUD_LOKI_URL}/loki/api/v1/push
     basic_auth:
       username: ${GRAFANA_CLOUD_LOKI_USER}
       password: ${GRAFANA_CLOUD_LOKI_API_KEY}
