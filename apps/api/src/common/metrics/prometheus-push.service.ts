@@ -68,7 +68,7 @@ function buildWriteRequestBuffer(metricFamilies: any[], timestampMs: number): Bu
       if (!isFinite(rawValue)) continue;
 
       // Build labels list: __name__ first (required by Prometheus), then sorted rest
-      const userLabels = entry.labels as Record<string, string>;
+      const userLabels = (entry.labels || {}) as Record<string, string>;
       const labelPairs: [string, string][] = [['__name__', name]];
       for (const [k, v] of Object.entries(userLabels).sort(([a], [b]) => a.localeCompare(b))) {
         labelPairs.push([k, String(v)]);
@@ -151,7 +151,11 @@ export class PrometheusPushService implements OnModuleInit, OnModuleDestroy {
     const compressed: Uint8Array = Snappy.compress(writeRequestBuf) as Uint8Array;
 
     // Grafana Cloud remote_write endpoint: <base_url>/api/prom/push
-    const pushUrl = url.replace(/\/api\/prom$/, '') + '/api/prom/push';
+    const pushUrl = url.endsWith('/api/prom/push')
+      ? url
+      : url.endsWith('/api/prom')
+        ? `${url}/push`
+        : `${url.replace(/\/+$/, '')}/api/prom/push`;
     const authHeader = 'Basic ' + Buffer.from(`${user}:${apiKey}`).toString('base64');
 
     try {

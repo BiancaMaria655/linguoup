@@ -6,7 +6,7 @@ services:
       - ./monitoring/prometheus/prometheus-cloud.yml:/tpl/prometheus.tpl.yml:ro
       - ./monitoring/prometheus:/out
     environment:
-      - GRAFANA_CLOUD_PROMETHEUS_URL=${GRAFANA_CLOUD_PROMETHEUS_URL}/push
+      - GRAFANA_CLOUD_PROMETHEUS_URL=${GRAFANA_CLOUD_PROMETHEUS_URL}
       - GRAFANA_CLOUD_PROMETHEUS_USER=${GRAFANA_CLOUD_PROMETHEUS_USER}
       - GRAFANA_CLOUD_PROMETHEUS_API_KEY=${GRAFANA_CLOUD_PROMETHEUS_API_KEY}
     entrypoint:
