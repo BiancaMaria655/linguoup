@@ -39,6 +39,11 @@ export class MetricsService {
     return this.registry.metrics();
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async getMetricsAsJSON(): Promise<any[]> {
+    return this.registry.getMetricsAsJSON() as unknown as Promise<any[]>;
+  }
+
   /**
    * Records details of an HTTP request.
    */
