@@ -1,4 +1,25 @@
 import { Injectable, LoggerService as NestLoggerService, Scope } from '@nestjs/common';
+import * as fs from 'fs';
+import * as path from 'path';
+
+let logStream: fs.WriteStream | null = null;
+
+function getLogStream(): fs.WriteStream | null {
+  if (logStream) return logStream;
+  try {
+    const logDir = path.join(process.cwd(), 'logs');
+    if (!fs.existsSync(logDir)) {
+      fs.mkdirSync(logDir, { recursive: true });
+    }
+    logStream = fs.createWriteStream(path.join(logDir, 'api.log'), { flags: 'a' });
+    return logStream;
+  } catch (err) {
+    console.error('Failed to initialize file logger:', err);
+    return null;
+  }
+}
+
+import { pushToLoki } from './loki-client';
 
 @Injectable({ scope: Scope.TRANSIENT })
 export class StructuredLogger implements NestLoggerService {
@@ -49,6 +70,20 @@ export class StructuredLogger implements NestLoggerService {
       logObject.stack = trace;
     }
 
-    console.log(JSON.stringify(logObject));
+    const logLine = JSON.stringify(logObject);
+    console.log(logLine);
+
+    try {
+      const stream = getLogStream();
+      if (stream) {
+        stream.write(logLine + '\n');
+      }
+    } catch (err) {
+      console.error('Failed to write log to file:', err);
+    }
+
+    // Direct push to Loki in production/cloud environment
+    pushToLoki(logLine);
   }
 }
+

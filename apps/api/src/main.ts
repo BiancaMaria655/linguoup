@@ -3,9 +3,11 @@ import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { GlobalLogger } from './common/logger/global-logger.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(new GlobalLogger());
 
   // CORS — permite frontend Vercel e desenvolvimento local
   const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3001')

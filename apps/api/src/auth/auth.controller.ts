@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req, Res, HttpCode, HttpStatus, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, Req, Res, HttpCode, HttpStatus, UnauthorizedException, UseInterceptors } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { RegisterUserUseCase } from './use-cases/register-user.use-case';
 import { LoginUserUseCase } from './use-cases/login-user.use-case';
@@ -8,7 +8,9 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { StructuredLogger } from '../common/logger/structured-logger.service';
 import * as crypto from 'crypto';
+import { MetricsInterceptor } from '../common/interceptors/metrics.interceptor';
 
+@UseInterceptors(MetricsInterceptor)
 @Controller('auth')
 export class AuthController {
   constructor(
