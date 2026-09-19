@@ -55,7 +55,27 @@ interface TimeSeriesEntry {
   value: number;
 }
 
-function buildWriteRequestBuffer(metricFamilies: any[], timestampMs: number): Buffer {
+function resolvePushIntervalMs(): number {
+  const parsed = Number(process.env.PROMETHEUS_PUSH_INTERVAL_MS);
+  if (!Number.isFinite(parsed) || parsed < 5_000) {
+    return 30_000;
+  }
+  return Math.min(parsed, 300_000);
+}
+
+function endpointHost(url: string): string {
+  try {
+    return new URL(url).host;
+  } catch {
+    return 'invalid-url';
+  }
+}
+
+function buildWriteRequestBuffer(
+  metricFamilies: any[],
+  timestampMs: number,
+  extraLabels: Record<string, string> = {},
+): Buffer {
   const timeseriesBuffers: Buffer[] = [];
 
   for (const family of metricFamilies) {
@@ -68,7 +88,10 @@ function buildWriteRequestBuffer(metricFamilies: any[], timestampMs: number): Bu
       if (!isFinite(rawValue)) continue;
 
       // Build labels list: __name__ first (required by Prometheus), then sorted rest
-      const userLabels = (entry.labels || {}) as Record<string, string>;
+      const userLabels = {
+        ...((entry.labels || {}) as Record<string, string>),
+        ...extraLabels,
+      };
       const labelPairs: [string, string][] = [['__name__', name]];
       for (const [k, v] of Object.entries(userLabels).sort(([a], [b]) => a.localeCompare(b))) {
         labelPairs.push([k, String(v)]);
@@ -93,7 +116,7 @@ function buildWriteRequestBuffer(metricFamilies: any[], timestampMs: number): Bu
 export class PrometheusPushService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrometheusPushService.name);
   private intervalHandle: NodeJS.Timeout | null = null;
-  private readonly PUSH_INTERVAL_MS = 30_000;
+  private readonly pushIntervalMs = resolvePushIntervalMs();
 
   constructor(private readonly metricsService: MetricsService) {}
 
@@ -120,10 +143,11 @@ export class PrometheusPushService implements OnModuleInit, OnModuleDestroy {
       this.pushMetrics().catch((err) =>
         this.logger.error('Metrics push failed', err?.message),
       );
-    }, this.PUSH_INTERVAL_MS);
+    }, this.pushIntervalMs);
+    this.intervalHandle.unref();
 
     this.logger.log(
-      `Prometheus remote_write enabled → ${url} (interval: ${this.PUSH_INTERVAL_MS / 1000}s)`,
+      `Prometheus remote_write enabled → ${endpointHost(url)} (interval: ${this.pushIntervalMs / 1000}s)`,
     );
   }
 
@@ -144,7 +168,9 @@ export class PrometheusPushService implements OnModuleInit, OnModuleDestroy {
     const metricsJson = await this.metricsService.getMetricsAsJSON();
     const timestampMs = Date.now();
 
-    const writeRequestBuf = buildWriteRequestBuffer(metricsJson, timestampMs);
+    const writeRequestBuf = buildWriteRequestBuffer(metricsJson, timestampMs, {
+      env: process.env.NODE_ENV || 'development',
+    });
     if (writeRequestBuf.length === 0) return;
 
     // Snappy-compress the protobuf payload
