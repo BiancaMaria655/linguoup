@@ -23,6 +23,9 @@ GRAFANA_CLOUD_PROMETHEUS_URL=https://prometheus-prod-XX.grafana.net/api/prom/pus
 GRAFANA_CLOUD_PROMETHEUS_USER=seu_usuario_prometheus_id
 GRAFANA_CLOUD_PROMETHEUS_API_KEY=seu_token_aqui
 
+# Intervalo do remote_write da API (ms). Mínimo 5000, padrão 30000.
+# PROMETHEUS_PUSH_INTERVAL_MS=30000
+
 # Enviar logs (Loki)
 GRAFANA_CLOUD_LOKI_URL=https://logs-prod-XX.grafana.net/loki/api/v1/push
 GRAFANA_CLOUD_LOKI_USER=seu_usuario_loki_id
